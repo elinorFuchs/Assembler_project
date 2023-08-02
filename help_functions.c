@@ -3,7 +3,7 @@
 //
 
 #include "help_functions.h"
-
+/*1*/
 char* copy_word(const char* line, int* index) {
 
     skip_spaces(index, line);

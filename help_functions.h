@@ -4,7 +4,7 @@
 
 #ifndef ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
 #define ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
-
+/*1*/
 #include "line_parser.h"
 
 char* copy_word (const char* line, int* index);

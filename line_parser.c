@@ -66,7 +66,7 @@ line_data* create_line_data(char *line) {
             char* arg;
             if(ld->label_name != NULL){/*there is label definition before .entry or .extern*/
                 strcpy(ld->label_name ,NULL);
-                printf("Warning: the is unnecessary label definition before .entry or .extern");
+                printf("Warning: the is unnecessary label definition before .entry or .extern.");
             }
             skip_spaces(&index,temp_line);/*index is pointing after the .entry or .extern*/
             count = args_counter(temp_line);

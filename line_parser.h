@@ -136,7 +136,7 @@ bool is_label(char* arg);
 bool is_register(char* arg);
 bool is_inst_arg_valid(char* argument);
 
-
+/*1*/
 
 #endif //ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
 
