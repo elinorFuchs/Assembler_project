@@ -1,0 +1,6 @@
+# ninja log v5
+1	86	7127004247645520	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	5ab5a9b49a8ca6fd
+8	124	7127004248026335	CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj	54a976f624954fd9
+1	130	7127006711612529	build.ninja	17826404aaea2590
+2	69	7127007755604261	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
+70	190	7127007756769536	Assembler_OpenU_project.exe	1d4eb248f432154f
