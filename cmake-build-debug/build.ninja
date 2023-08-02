@@ -67,6 +67,12 @@ build CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj: C_COMPILER__Assem
   OBJECT_DIR = CMakeFiles\Assembler_OpenU_project.dir
   OBJECT_FILE_DIR = CMakeFiles\Assembler_OpenU_project.dir
 
+build CMakeFiles/Assembler_OpenU_project.dir/help_functions.c.obj: C_COMPILER__Assembler_OpenU_project_Debug C$:/Users/elifu/Desktop/maabada/Assembler_OpenU_project/help_functions.c || cmake_object_order_depends_target_Assembler_OpenU_project
+  DEP_FILE = CMakeFiles\Assembler_OpenU_project.dir\help_functions.c.obj.d
+  FLAGS = -g -fdiagnostics-color=always -std=gnu90
+  OBJECT_DIR = CMakeFiles\Assembler_OpenU_project.dir
+  OBJECT_FILE_DIR = CMakeFiles\Assembler_OpenU_project.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Assembler_OpenU_project
@@ -75,7 +81,7 @@ build CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj: C_COMPILER__Assem
 #############################################
 # Link the executable Assembler_OpenU_project.exe
 
-build Assembler_OpenU_project.exe: C_EXECUTABLE_LINKER__Assembler_OpenU_project_Debug CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj
+build Assembler_OpenU_project.exe: C_EXECUTABLE_LINKER__Assembler_OpenU_project_Debug CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj CMakeFiles/Assembler_OpenU_project.dir/help_functions.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\Assembler_OpenU_project.dir

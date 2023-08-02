@@ -3,17 +3,18 @@
 //
 
 #ifndef ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
-#define ASSEMBLER_OPENU_PROJECT_LINE_PARSER1_H
-#define DIRECTION_NUM 4
+#define ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define DIRECTION_NUM 4
 #define MAX_LABEL_SIZE 31
 #define MAX_LINE_SIZE 82
 #define VALID_ADDRSS_MTHDS 3
-typedef enum bool {false, true} bool;
+#define REGISTERS_NUM 8
 
+typedef enum bool {false, true} bool;
 /*Instruction Line Data Structures:*/
 typedef enum opcode_names {
     mov,
@@ -111,31 +112,28 @@ bool is_direction (char* word);
 bool is_args_as_expected(op_args_method* op_args_to_validate,opcode code);
 bool is_valid_string(char* string_line);
 bool is_label_def (char* word);
-void skip_spaces (int* index,const char* line);
-char* copy_word (const char* line, int* index);
 bool is_instruction(char* word);
 direction_type which_data_type(char* word);
 opcode which_instruction(char* word);
 bool is_A_group(opcode code);
 bool is_B_group(opcode code);
 bool is_C_group(opcode code);
-bool is_commas_valid(char* args);
 char* copy_string(char* line,int* index);
 bool is_more_args(char *line, int *index);
-bool string_parser(char* line, char* args, line_data* ld, int* index)  ;
+bool string_parser(char* line, line_data* ld, int* index)  ;
 char *copy_s_args(char *string_line);
 bool data_parser(char* temp_line, data_int_arr* d_arr, line_data* ld, int* index);
 data_int_arr* copy_d_args(char* data_line);
 bool is_valid_data(char* data_line);
-int args_counter (char* inst_line);
 bool inst_args_parser(char *temp_line, opcode code, int *index);
 bool a_count_as_expected(opcode op, int args_c);
 op_args_method* set_op_args(char *data_args, op_args_method* op_args_to_validate);
-void src_add_set (char* args,op_args_method* op_add_method);
-void dest_add_set (char* args,op_args_method* op_add_method);
-bool is_immediate(char* args);
-bool is_label(char* args);
-bool is_register(char* args);
+void set_src_add (char* arg, op_args_method* op_add_method);
+void set_dest_add (char* args, op_args_method* op_add_method);
+bool is_immediate(char* arg);
+bool is_label(char* arg);
+bool is_register(char* arg);
+bool is_inst_arg_valid(char* argument);
 
 
 
