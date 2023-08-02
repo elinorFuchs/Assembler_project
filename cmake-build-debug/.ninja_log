@@ -1,20 +1,7 @@
 # ninja log v5
-1	86	7127004247645520	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	5ab5a9b49a8ca6fd
-8	124	7127004248026335	CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj	54a976f624954fd9
-1	130	7127031392744923	build.ninja	17826404aaea2590
-2	69	7127007755604261	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
-70	190	7127007756769536	Assembler_OpenU_project.exe	1d4eb248f432154f
-2	100	7127085782165337	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	5ab5a9b49a8ca6fd
-7	107	7127085782241952	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
-12	136	7127085782534847	CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj	54a976f624954fd9
-1	97	7127087092435554	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	5ab5a9b49a8ca6fd
-12	106	7127087092561295	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
-9	99	7127088979987130	CMakeFiles/Assembler_OpenU_project.dir/help_functions.c.obj	ab4072d309d89dac
-2	89	7127089628788470	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	5ab5a9b49a8ca6fd
-7	98	7127089628893541	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
-18	114	7127089629066396	CMakeFiles/Assembler_OpenU_project.dir/help_functions.c.obj	ab4072d309d89dac
 1	85	7127090546799800	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	5ab5a9b49a8ca6fd
-7	96	7127090546904223	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
 17	111	7127090547072144	CMakeFiles/Assembler_OpenU_project.dir/help_functions.c.obj	ab4072d309d89dac
 12	130	7127090547266386	CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj	54a976f624954fd9
+1	130	7127103563668653	build.ninja	17826404aaea2590
+7	96	7127090546904223	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	f43d3ebe8ff4c112
 134	341	7127090549318722	Assembler_OpenU_project.exe	1237115966c32985
