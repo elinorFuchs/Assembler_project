@@ -15,6 +15,7 @@
 #define REGISTERS_NUM 8
 
 typedef enum bool {false, true} bool;
+
 /*Instruction Line Data Structures:*/
 typedef enum opcode_names {
     mov,
