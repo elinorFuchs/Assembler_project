@@ -1,7 +1,7 @@
 //
 // Created by elifu on 02/08/2023.
 //
-
+#include "line_parser.h"
 #include "help_functions.h"
 /*1*/
 char* copy_word(const char* line, int* index) {

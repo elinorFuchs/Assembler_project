@@ -6,6 +6,8 @@
 #include "help_functions.h"
 
 char delim[] =", \t\n\v\f";
+char* inst_Arr[16] = {"mov","cmp","add","sub","not","clr","lea","inc",
+                      "dec","jmp","bne","red","prn","jsr","rts","stop"};
 op_args_method op_arg_arr [16] = {
         {lea,label,none,none,label,reg,none},
         {sub, immediate, label,reg,label,reg,none},
@@ -25,14 +27,16 @@ op_args_method op_arg_arr [16] = {
         {rts,none,none,none,none,none,none}
 };
 
-
 line_data* create_line_data(char *line) {
 
     line_data* ld = malloc(sizeof(line_data));
+
+    strcpy(ld->label_name,"\0");
+    printf("label name before set is:%s\n", ld->label_name);
     int index =0;
     char* word;
     char temp_line[MAX_LINE_SIZE];
-    data_int_arr* d_arr;
+
 
     strcpy(temp_line, line);
     word = copy_word (temp_line,&index);
@@ -48,6 +52,7 @@ line_data* create_line_data(char *line) {
     /*check if it's a label*/
     if (is_label_def(word)) {
         strcpy(ld->label_name, word) ;
+        printf("label name after set is %s\n",ld->label_name);
         word = copy_word (temp_line, &index);/*we want to continue check the next word after the label */
     }
 
@@ -59,7 +64,8 @@ line_data* create_line_data(char *line) {
             string_parser(temp_line, ld, &index);
         }
         else if (d_t == d_data){
-            data_parser(temp_line, d_arr, ld, &index);
+
+            data_parser(temp_line, ld, &index);
         }
         else if (d_t == d_entry || d_t == d_extern){
             int count;
@@ -88,27 +94,31 @@ line_data* create_line_data(char *line) {
     }
     else {/*not valid first word - get error*/printf("Error: not valid first word");}
 
-    return ld;
+    return ld;/*if returns invalid ld, inst or dir not valid, need to have a flag about it*/
 }
 
 bool is_label_def (char* word){
 
     int length = strlen(word),i = 0;
     if (length > MAX_LABEL_SIZE){
-        /*printf("first word is too long for label or any other line type (data or instruction");*/
+        /*printf("first word is too long for label definition / direction or instruction");*/
         return false;
     }
     if (!(isalpha(word[0]))){/*the first character of a label must be a-z or A-Z*/
         return false;
     }
     while (i < length - 1){/*the rest of the label must be numbers or letters, and the last character is ':'*/
-        if(!(isalpha(word[i])) || !(isdigit(word[i])))
+        if(!(isalpha(word[i])) && !(isdigit(word[i])))
             return false;
         i++;
     }
-    if(word[length-1] != ":")
+    if(strcmp(&word[length-1],":") != 0 )
         return false;
     word[length-1] = '\0';/*replace the ':' with null terminator to save the label name*/
+    if(is_instruction(word)){
+        printf("label name can't be an instruction opcode");
+        return false;
+    }
     return  true;
 }
 
@@ -194,16 +204,18 @@ bool inst_args_parser(char *temp_line, opcode code,int *index)/*check commas, co
     }
 
     op_args_method* op_add_method = 0;
-    op_add_method = set_op_args(inst_line, op_add_method);
-
-    if(!(is_args_as_expected(op_add_method,code))){/*the args address method is invalid*/
+    op_add_method = set_op_args(inst_line, op_add_method);/*if its nit valid return null but conitinue to next if check- why?*/
+    if(op_add_method == NULL){
+        return false;
+    }
+    if(!(is_args_as_expected(op_add_method))){/*the args address method is invalid*/
         printf("error args type is not valid.");
         return false;
     }
     return  true;
 }
 
-bool is_args_as_expected(op_args_method* op_args_to_validate,opcode code)
+bool is_args_as_expected(op_args_method* op_args_to_validate)
 {
     int i;
     int j;
@@ -211,36 +223,37 @@ bool is_args_as_expected(op_args_method* op_args_to_validate,opcode code)
     for (i = 0; i < 16; i++) {
         if (op_arg_arr[i].code == op_args_to_validate->code) {
             for (j = 0; j < VALID_ADDRSS_MTHDS; j++) {
-                if ((op_arg_arr[i].src[j]) == op_args_to_validate->src) {
+                if(op_arg_arr[i].src[j] == op_args_to_validate->src[0]){
                     for (k = 0; k < VALID_ADDRSS_MTHDS; k++) {
-                        if ((op_arg_arr[i].dest[k]) == op_args_to_validate->dest)
+                        if ((op_arg_arr[i].dest[k]) == op_args_to_validate->dest[0])
                             return true;
                     }
                 }
             }
         }
     }
+    return false;
 }
 
-op_args_method* set_op_args(char *data_args, op_args_method* op_add_method) {
+op_args_method* set_op_args(char *data_args, op_args_method* op_add_m) {
 
     char* first_arg = strtok(data_args, delim);
     char* second_arg = strtok(NULL, delim);
 
     if(!(is_inst_arg_valid(first_arg))){
         printf("instruction argument isn't valid");
-        return op_add_method;
+        return op_add_m;
     }
     if (second_arg != NULL){
         if(!(is_inst_arg_valid(second_arg))){
             printf("instruction argument isn't valid");
-            return op_add_method;
+            return op_add_m;
         }
-        set_src_add(first_arg, op_add_method->src);
-        set_dest_add(second_arg, op_add_method->dest);
+        set_src_add(first_arg, op_add_m);
+        set_dest_add(second_arg, op_add_m);
     } else/*there is only one argument*/
-        set_dest_add(first_arg, op_add_method->dest);
-    return op_add_method;
+        set_dest_add(first_arg, op_add_m);
+    return op_add_m;
 }
 bool is_inst_arg_valid(char* argument){
 
@@ -251,16 +264,13 @@ bool is_inst_arg_valid(char* argument){
 
 }
 
-void set_src_add (char* arg, op_args_method* op_add_method) {
+void set_src_add (char* arg, op_args_method* op_add_m) {
     if (is_immediate(arg)) {
-        op_add_method->src[0] = immediate;
+        op_add_m->src[0] = immediate;
     } else if (is_label(arg)) {
-        /*need to check if the label exist in lable table or extern table-so add this label string somewhere, then
-         * in the first pass func will be created a label validation table, and second pass /or the end of first pass will check
-         * if this label exist in the label table. also there will be a check that entry labels i difind in this table*/
-        op_add_method->src[0] = label;
+        op_add_m->src[0] = label;
     } else if (is_register(arg)) {
-        op_add_method->src[0] = reg;
+        op_add_m->src[0] = reg;
     }
 }
 void set_dest_add (char* args, op_args_method* op_add_method) {
@@ -275,9 +285,9 @@ void set_dest_add (char* args, op_args_method* op_add_method) {
 
 bool is_register(char *arg) {
     int i;
-    char *registers = {"@r0", "@r1", "@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
+    char* registers[REGISTERS_NUM] = {"@r0", "@r1", "@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
     for (i = 0; i < REGISTERS_NUM; i++) {
-        if (strcmp(arg, &registers[i]) == 0)
+        if (strcmp(arg, registers[i]) == 0)
             return true;
     }
     return false;
@@ -325,8 +335,9 @@ bool a_count_as_expected(opcode op, int args_c) {
         return true;
 }
 
-bool data_parser(char* temp_line, data_int_arr* d_arr, line_data* ld, int* index){
+bool data_parser(char* temp_line, line_data* ld, int* index){
 
+    data_int_arr* d_arr;
     char* data_line = malloc(sizeof(char));
     strcpy(data_line,&temp_line[*index]);/*index is pointing to after .data*/
 
@@ -368,7 +379,7 @@ bool is_valid_data(char* data_line){
             skip_spaces(&i, data_line);
             if(!(isdigit(data_line[i]) || data_line[i] == ',')){
                 return false;
-            };
+            }
         }
         return true;/*the arguments are all integers or commas*/
     }
@@ -443,12 +454,12 @@ direction_type which_data_type(char* word){
         }
     }
     if((void *) dt == NULL){
-        printf("\nUndefined command name\n");
+        printf("\nUndefined data name\n");
     }
     return dt;
 }
 
-bool is_direction (char* word){/*זיהוי אחד מאופציות ההנחיה*/
+bool is_direction (char* word){
     int i;
     char* directions_string [DIRECTION_NUM] = {".string",".data" , ".entry" , ".extern"};
     if (word == NULL){/*what exactly are the cases this is null*/
@@ -468,15 +479,79 @@ bool is_direction (char* word){/*זיהוי אחד מאופציות ההנחיה
 }
 
 opcode which_instruction(char* word){
-    return  true;
+    opcode code_name;
+    int i;
+
+    for (i = 0; i < INST_SIZE; i++) {/*debug because loop conitnue after finding the word*/
+        if (0 == strcmp(inst_Arr[i], word)) {
+            switch (i) {
+                case 0:
+                    code_name = mov;
+                    break;
+                case 1:
+                    code_name = cmp;
+                    break;
+                case 2:
+                    code_name = add;
+                    break;
+                case 3:
+                    code_name = sub;
+                    break;
+                case 4:
+                    code_name = not;
+                    break;
+                case 5:
+                    code_name = clr;
+                    break;
+                case 6:
+                    code_name = lea;
+                    break;
+                case 7:
+                    code_name = inc;
+                    break;
+                case 8:
+                    code_name = dec;
+                    break;
+                case 9:
+                    code_name = jmp;
+                    break;
+                case 10:
+                    code_name = bne;
+                    break;
+                case 11:
+                    code_name = red;
+                    break;
+                case 12:
+                    code_name = prn;
+                    break;
+                case 13:
+                    code_name = jsr;
+                    break;
+                case 14:
+                    code_name = rts;
+                    break;
+                case 15:
+                    code_name = stop;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    if((void *) code_name == NULL){/*to debug*/
+        printf("\nUndefined code name\n");
+    }
+    return code_name;
 }
 
 bool is_instruction(char* word) {
-    return true;
+    int i;
+    for (i = 0; i < INST_SIZE; i++) {
+        if(strcmp(word,inst_Arr[i]) == 0)
+            return true;
+    }
+    return false;
 }
-
-
-
 
 
 /*check if argument method is valid
