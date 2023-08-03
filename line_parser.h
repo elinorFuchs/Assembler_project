@@ -58,7 +58,7 @@ typedef struct op_args_method{
 extern op_args_method op_arg_arr [16];
 
 typedef struct instruction {
-    op_args_method* op_address_method;
+    op_args_method* add_mthd;
     int lines_keeper;
 }instruction;
 
@@ -132,11 +132,11 @@ char *copy_s_args(char *string_line);
 bool data_parser(char* temp_line, line_data* ld, int* index);
 data_int_arr* copy_d_args(char* data_line);
 bool is_valid_data(char* data_line);
-bool inst_args_parser(char *temp_line, opcode code, int *index);
+bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld);
 bool a_count_as_expected(opcode op, int args_c);
-op_args_method* set_op_args(char *data_args, op_args_method* op_args_to_validate);
+op_args_method* set_op_args(char *data_args, line_data* ld);
 void set_src_add (char* arg, op_args_method* op_add_m);
-void set_dest_add (char* args, op_args_method* op_add_method);
+void set_dest_add (char* args, op_args_method* op_add_m);
 bool is_immediate(char* arg);
 bool is_label(char* arg);
 bool is_register(char* arg);

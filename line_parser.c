@@ -90,7 +90,16 @@ line_data* create_line_data(char *line) {
     else if (which_instruction(word) != invalid){/*it's an instruction line*/
         ld->is_instruction = true;
         opcode code = which_instruction(word);
-        inst_args_parser(temp_line, code, &index);/*check commas, count arguments, check if the address method is valid .do all the ld struct updates*/
+
+
+        ld->l_type = malloc(sizeof (line_type));
+        ld->l_type->inst = malloc(sizeof (instruction));
+        ld->l_type->inst->add_mthd = malloc(sizeof (op_args_method));
+
+        ld->l_type->inst->add_mthd->code = code;
+
+        inst_args_parser(temp_line, code, &index, ld);/*check commas, count arguments, check if the address method is valid .do all the ld struct updates*/
+
     }
     else {/*not valid first word - get error*/printf("Error: not valid first word");}
 
@@ -188,7 +197,7 @@ char *copy_s_args(char *line) {
     return s_content;
 }
 
-bool inst_args_parser(char *temp_line, opcode code,int *index)/*check commas, count arguments, check if the address method is valid, ld updates*/
+bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*check commas, count arguments, check if the address method is valid, ld updates*/
 {
     char* inst_line = malloc(sizeof(char));
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
@@ -203,12 +212,13 @@ bool inst_args_parser(char *temp_line, opcode code,int *index)/*check commas, co
         return false;
     }
 
-    op_args_method* op_add_method = 0;
-    op_add_method = set_op_args(inst_line, op_add_method);/*if its nit valid return null but conitinue to next if check- why?*/
-    if(op_add_method == NULL){
+    ld->l_type->inst->add_mthd = set_op_args(inst_line,ld);
+    if(ld->l_type->inst->add_mthd == NULL){
         return false;
     }
-    if(!(is_args_as_expected(op_add_method))){/*the args address method is invalid*/
+
+
+    if(!(is_args_as_expected(ld->l_type->inst->add_mthd))){/*the args address method is invalid*/
         printf("error args type is not valid.");
         return false;
     }
@@ -235,25 +245,25 @@ bool is_args_as_expected(op_args_method* op_args_to_validate)
     return false;
 }
 
-op_args_method* set_op_args(char *data_args, op_args_method* op_add_m) {
+op_args_method* set_op_args(char* data_args, line_data* ld) {
 
     char* first_arg = strtok(data_args, delim);
     char* second_arg = strtok(NULL, delim);
 
     if(!(is_inst_arg_valid(first_arg))){
         printf("instruction argument isn't valid");
-        return op_add_m;
+        return ld->l_type->inst->add_mthd;
     }
     if (second_arg != NULL){
         if(!(is_inst_arg_valid(second_arg))){
             printf("instruction argument isn't valid");
-            return op_add_m;
+            return ld->l_type->inst->add_mthd;
         }
-        set_src_add(first_arg, op_add_m);
-        set_dest_add(second_arg, op_add_m);
+        set_src_add(first_arg, ld->l_type->inst->add_mthd);
+        set_dest_add(second_arg, ld->l_type->inst->add_mthd);
     } else/*there is only one argument*/
-        set_dest_add(first_arg, op_add_m);
-    return op_add_m;
+        set_dest_add(first_arg, ld->l_type->inst->add_mthd);
+    return ld->l_type->inst->add_mthd;
 }
 bool is_inst_arg_valid(char* argument){
 
@@ -265,6 +275,7 @@ bool is_inst_arg_valid(char* argument){
 }
 
 void set_src_add (char* arg, op_args_method* op_add_m) {
+
     if (is_immediate(arg)) {
         op_add_m->src[0] = immediate;
     } else if (is_label(arg)) {
@@ -273,13 +284,14 @@ void set_src_add (char* arg, op_args_method* op_add_m) {
         op_add_m->src[0] = reg;
     }
 }
-void set_dest_add (char* args, op_args_method* op_add_method) {
+void set_dest_add (char* args, op_args_method* op_add_m) {
+
     if (is_immediate(args)) {
-        op_add_method->dest[0] = immediate;
+        op_add_m->dest[0] = immediate;
     } else if (is_label(args)) {
-        op_add_method->dest[0] = label;
+        op_add_m->dest[0] = label;
     } else if (is_register(args)) {
-        op_add_method->dest[0] = reg;
+        op_add_m->dest[0] = reg;
     }
 }
 
@@ -303,7 +315,7 @@ bool is_label(char *arg) {
         return false;
     }
     while (i < length){/*the rest of the label must be numbers or letters*/
-        if(!(isalpha(arg[i])) || !(isdigit(arg[i])))
+        if(!(isalpha(arg[i])) && !(isdigit(arg[i])))
             return false;
         i++;
     }
@@ -479,7 +491,7 @@ bool is_direction (char* word){
 }
 
 opcode which_instruction(char* word){
-    opcode code_name;
+    opcode code_name = invalid;
     int i;
 
     for (i = 0; i < INST_SIZE; i++) {/*debug because loop conitnue after finding the word*/
@@ -536,11 +548,13 @@ opcode which_instruction(char* word){
                 default:
                     break;
             }
+            if(code_name != invalid)
+                break;
         }
+
+
     }
-    if((void *) code_name == NULL){/*to debug*/
-        printf("\nUndefined code name\n");
-    }
+
     return code_name;
 }
 
