@@ -80,7 +80,11 @@ bool is_commas_valid(char* args){
     bool isValid = false;
     bool hasArgument = false;
     bool previousIsComma = false; /* Track if the previous character was a comma*/
-
+    skip_spaces(&i,args);
+    if(args[i] == '\0') {/*it's an empty line*/
+        isValid = true;
+        return isValid;
+    }
     /* Check for comma at the beginning*/
     if (args[i] == ',') {
         printf("\nIllegal comma\n");

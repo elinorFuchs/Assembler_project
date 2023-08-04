@@ -79,8 +79,8 @@ typedef enum direction_type {
 typedef union direction_content{
     data_int_arr* data;/*if it's a data*/
     char* string; /*if it's a string*/
-    char* entry; /*if it's an entry*/
-    char* extern_; /*if it's an extern*/
+    char** entry; /*if it's an entry*/
+    char** extern_; /*if it's an extern*/
 }direction_content;
 
 typedef struct direction {
@@ -130,17 +130,19 @@ bool is_more_args(char *line, int *index);
 bool string_parser(char* line, line_data* ld, int* index)  ;
 char *copy_s_args(char *string_line);
 bool data_parser(char* temp_line, line_data* ld, int* index);
-data_int_arr* copy_d_args(char* data_line);
+void copy_d_args(char* data_line, line_data* ld);
 bool is_valid_data(char* data_line);
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld);
 bool a_count_as_expected(opcode op, int args_c);
-op_args_method* set_op_args(char *data_args, line_data* ld);
-void set_src_add (char* arg, op_args_method* op_add_m);
-void set_dest_add (char* args, op_args_method* op_add_m);
+bool set_op_args(char *data_args, line_data* ld);
+void set_src_add (char* arg, line_data* ld);
+void set_dest_add (char* args, line_data* ld);
 bool is_immediate(char* arg);
 bool is_label(char* arg);
 bool is_register(char* arg);
 bool is_inst_arg_valid(char* argument);
+void set_entry_labels(direction_content* dc);
+void set_extern_labels(direction_content* dc);
 
 #endif //ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
 
