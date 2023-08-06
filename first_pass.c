@@ -3,64 +3,115 @@
 //
 
 #include "first_pass.h"
-#include "line_parser.h"
 
 /*fgets from am file->create line_data for each line and put in ld struct array->create symbol table -> pass to second pass */
 
-/*create array of ld struct. fgets from am file.  call: create_line_data(char *line), then put the struct inside the ld array.  call the create_symbol_table func */
-bool create_symbol_table (line_data* ld, int* ic, int* dc, label_object symbol_table[]) {
+
+bool first_pass (FILE* am) {/*add later the symbol table and ld arr and ld as argument so secont pass can use them too*/
+    char line[MAX_LINE_SIZE];
+    int i = 0;
+    int* ic, *dc;
+    label_object* label;
+    label_object* symbol_table[50];
+
+    line_data* ld;
+    line_data* ld_arr;
+    ld_arr = (line_data *) malloc(sizeof(line_data) * 10);
+
+
+    while (fgets(line, MAX_LINE_SIZE, am)) {
+        printf("\n%s\n", line);
+        ld = create_line_data(line);
+        ld_arr[i] = *ld;
+        if (ld->is_instruction)
+        i++;
+    }
+    create_symbol_table (ld_arr, symbol_table, ic, dc);
+
+}
+
+
+
+bool create_symbol_table (line_data* ld_arr, label_object* symbol_table[], int* ic, int* dc) {
 
     /*loop through ld array:*/
-    if( ld->label_name != NULL) {/*there is a label definition*/
+    int i;
+    label_object* new_label = {0};
+    new_label = (label_object*) safe_malloc(sizeof (label_object));
+    for (i = 0; i < 50; i++) /*chang to ld arr size*/{
 
-        label_object* label = search_label((ld->label_name), symbol_table);/*check if the label already exist*/
+        if (ld_arr[i].label_name != '\0') {/*there is a label definition in the line*/
 
-        if (label != NULL) {/*label found in symbol table*/
-            /*לבדוק מה עושים, אם התוית נמצאת בטבלה כאקסטרן, זאת בעיה כי אי אפשר להגדיר את הלייבל באותו קובץ שבו הוא הוכרז כאקסטרן
-              ואם לא מוגדרת כאקסטרן גם שגיאה כי אי אפשר לבגדיר פעממים אותה תוית*/
-        }
-        else /*label definition*/
-        {
-            if(ld->is_instruction){
+            if (search_label((ld_arr[i].label_name), symbol_table)) {/*check if the label not already in the lable table*/
+                /*label isn't already exist - definition is valid. add to table*/
 
-                strcpy(label->label_name,ld->label_name);
-                label->d_or_c =code;
-                label->type = relocatable;
-                label->label_value = *ic;
-                /*בכמה לקדם את ic? לפי קבוצת הפקודות, לבדוק ולהשלים קידום*/
-                add_to_symbol_table (label,symbol_table);
+
+                if (ld_arr[i].is_instruction) {
+                    strcpy(new_label->label_name, ld_arr[i].label_name);
+                    new_label->is_code = true;
+                    new_label->type = relocatable;
+                    new_label->label_value = *ic;
+                    *ic += ld_arr[i].inst->inst_line_keeper;
+
+                    add_to_symbol_table(new_label, symbol_table);
+                }
+                else if(ld_arr[i].is_direction) {/*direction line*/
+                    strcpy(new_label->label_name, ld_arr[i].label_name);
+                    new_label->is_data = true;
+                    new_label->type = relocatable;
+                    new_label->label_value = *dc;
+                    *dc += ld_arr[i].dir->dir_line_keeper;
+
+                    add_to_symbol_table(new_label, symbol_table);
+
+                }
             }
-            else {/*direction line*/
-                strcpy(label->label_name,ld->label_name);
-                label->d_or_c =data;
-                label->type = relocatable;
-                label->label_value = *dc;
+
+
+        }
+        /*not a label definition*/
+        else{
+            if (ld_arr[i].is_direction){
+                if(ld_arr[i].dir->d_type == d_extern){
+                    new_label->type = external;
+                    new_label->label_name = ld_arr[i].dir->d_content->extern_ /*TO SOLVE - there can be few extern*/;
+                    /*label value remine empty in purpose*/
+                    add_to_extern_file
+                    if (!(search_label((new_label->label_name), symbol_table))) {/*if already exist in the table */
+
+                    }
+                }
 
             }
         }
 
 
     }
-    /*not a label definition*/
-    /*המשך מעבר ראשון*/
-
-
-
 }
+
+
 
 
 
 void add_to_symbol_table (label_object* label,label_object* symbol_table){}
 
-label_object* search_label(char label_name[],label_object* symbol_table){
-/*
-    loop the symbpl table, if the name is the same, check if type is external
-     * if(type == external){
-                   print_error_msg(&line, "Extern label can't be defined in the same file.");
-                   return FALSE;
-                   else{
-                       print_error_msg(&line, "Label already defined.");
-                       return FALSE;
-                   }*/
-    return NULL;
+bool search_label(char* label_name, label_object* symbol_table[]){
+
+    int i;
+    /*label_object* which_label;*/
+    for(i = 0; i < 50; i++){
+        if(strcmp(symbol_table[i]->label_name,label_name) == 0){
+            /*strcpy(which_label->label_name, symbol_table[i]->label_name);
+            break;*/
+            if(symbol_table[i]->type == external){
+                printf("extern label can't be defined in the same file.");
+                return false;}
+            else if(symbol_table[i]->type == relocatable){
+                printf("label already defined.");
+                return false;
+            }
+        }
+    }
+    return true;/*the label define is valid- it's not already in the label table*/
+
 }

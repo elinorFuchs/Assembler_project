@@ -127,3 +127,22 @@ bool is_commas_valid(char* args){
     }
     return isValid;
 }
+
+void* safe_malloc(size_t size) {
+    void* ptr = malloc(size);
+    if (ptr == NULL) {
+        printf("Memory allocation failed. Exiting...\n");
+        exit(EXIT_FAILURE);
+    }
+    return ptr;
+}
+void resize_arr(int** arr, int* size) {
+    *size *= 2;
+    int* temp_arr = (int*)realloc(*arr, (*size) * sizeof(int));
+    if (temp_arr == NULL) {
+        printf("Memory reallocation failed. Exiting...\n");
+        free(*arr);
+        exit(EXIT_FAILURE);
+    }
+    *arr = temp_arr;
+}
