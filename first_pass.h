@@ -9,6 +9,8 @@
 #include "line_parser.h"
 #include "help_functions.h"
 
+#define INITIAL_SIZE 50
+
 enum label_type{
     external,
     relocatable
@@ -28,7 +30,7 @@ typedef struct label_object{
 
 /*functions declaration*/
 bool search_label(char* label_name, label_object* symbol_table[]);
-bool first_pass (FILE* am);
+bool first_pass (FILE* am, label_object* symbol_table, line_data* ld_arr, int* ic, int* dc);
 void add_to_symbol_table (label_object* label,label_object* symbol_table);
 bool create_symbol_table (line_data* ld_arr, label_object* symbol_table[], int* ic, int* dc);
 /*

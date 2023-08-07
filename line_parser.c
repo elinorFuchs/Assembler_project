@@ -5,7 +5,7 @@
 #include "line_parser.h"
 #include "help_functions.h"
 
-char delim[] =", \t\n\v\f";
+char delim[] =", \t\n\v\f\r";
 char* inst_Arr[16] = {"mov","cmp","add","sub","not","clr","lea","inc",
                       "dec","jmp","bne","red","prn","jsr","rts","stop"};
 char* rgstrs[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
@@ -27,6 +27,7 @@ op_args_mthd op_args_arr [16] = {
         {stop,none,none,none,none,none,none},
         {rts,none,none,none,none,none,none}
 };
+char* errors[] = {"", "Error: invalid first word"};/**/
 
 line_data* create_line_data(char *line) {
 
@@ -36,7 +37,6 @@ line_data* create_line_data(char *line) {
     char* word;
     char temp_line[MAX_LINE_SIZE];
 
-    strcpy(ld->label_name,"\0");
     strcpy(temp_line, line);
     word = copy_word (temp_line,&index);
 
@@ -50,6 +50,7 @@ line_data* create_line_data(char *line) {
     }
     /*check if it's a label*/
     if (is_label_def(word)) {
+        ld->is_label_def = true;
         strcpy(ld->label_name, word) ;
         word = copy_word (temp_line, &index);/*we continue check the next word after the label definition*/
     }
@@ -72,7 +73,7 @@ line_data* create_line_data(char *line) {
             int count;
             char* arg;
             arg = malloc(sizeof (arg));
-            if(ld->label_name[0] != '\0'){/*there is label definition before .entry or .extern*/
+            if(ld->is_label_def){/*there is label definition before .entry or .extern*/
                 strcpy(ld->label_name ,"\0");/*delete the label definition before .extern, it's meaningless */
                 printf("Warning: the is unnecessary label definition before .entry or .extern.\n");
             }
@@ -86,19 +87,7 @@ line_data* create_line_data(char *line) {
                 set_extern_labels(ld->dir->d_content);/*put the args in string arr */
 
             }
-            /*if (count != 1) {
-                printf(".entry or .extern line with more then one argument");
-                return ld;
-            }
-            /*arg = copy_word(temp_line,&index);
-             {
-                ld->l_type->dir->d_type = d_entry;
-                strcpy(ld->l_type->dir->d_content->entry, arg);
-            }
-            else /*.extern{
-                ld->l_type->dir->d_type = d_extern;
-                strcpy(ld->l_type->dir->d_content->extern_, arg);
-            }*/
+
         }
     }
     else if (which_instruction(word) != invalid){/*it's an instruction line*/
@@ -110,7 +99,7 @@ line_data* create_line_data(char *line) {
 
         inst_args_parser(temp_line, code, &index, ld);/*check commas, count arguments, check if the address method is valid .do all the ld struct updates*/
     }
-    else {/*not valid first word - get error*/printf("Error: not valid first word");}
+    else {/*not valid first word - get error*/ld->ei = INVALID_FIRST_WORD;}
 
     return ld;/*if returns invalid ld, inst or dir not valid, need to have a flag about it*/
 }
@@ -134,6 +123,7 @@ bool is_label_def (char* word){
         return false;
     word[length-1] = '\0';/*replace the ':' with null terminator to save the label name*/
     if(is_instruction(word)){
+
         printf("label name can't be an instruction opcode");
         return false;
     }
@@ -168,6 +158,7 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
 
     char* string_line = malloc(sizeof(char));
     char* args;
+    size_t str_len;
     ld->dir->d_content->string = malloc(sizeof (char*));
 
     strcpy(string_line,&temp_line[*index]);/*index is pointing to after .string*/
@@ -180,7 +171,9 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
             exit(EXIT_FAILURE);
         }
 
-        strcpy(ld->dir->d_content->string, args);/*put the .string argument in line_data struct*/
+        strcpy(ld->dir->d_content->string->string, args);/*put the .string argument in line_data struct*/
+        ld->dir->d_content->string->str_len = strlen(args);
+        ld->dir->dir_line_keeper = strlen(args);
     }
     else {/*is_string returned false and already know what is the error*/
         return false;
@@ -223,7 +216,7 @@ bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*
     }
     int args_count = args_counter (inst_line);
     if(!(a_count_as_expected(code, args_count))){/*the number of arguments is invalid*/
-        printf("error args num is not valid.\n");
+        printf("error args amount is not valid.\n");
         return false;
     }
 
@@ -424,9 +417,6 @@ bool set_op_args(char* data_args, line_data* ld) {
             return true;/*the arguments are all  sign integers or commas*/
     }
 
-
-
-
     void copy_d_args(char* data_line, line_data* ld) {
         int *d_args;
         int i, j = 0, data_size = 10;
@@ -445,7 +435,7 @@ bool set_op_args(char* data_args, line_data* ld) {
             skip_commas(&i, data_line);
 
             if (j >= data_size) /*reallocate memory*/
-                resize_arr(&d_args, &data_size);
+                resize_arr(&d_args, &data_size);/*maybe need to update data size?*/
         }
         ld->dir->d_content = (direction_content*)safe_malloc(sizeof(*ld->dir->d_content));
         ld->dir->d_content->d_arr = (int*)safe_malloc(j * sizeof(*ld->dir->d_content->d_arr));

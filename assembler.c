@@ -9,7 +9,11 @@
 #include <stdlib.h>
 int main(int argc, char* argv[]){
 
-
+    int* ic, *dc;
+    label_object* symbol_table;
+    symbol_table = (label_object*) safe_malloc(sizeof (label_object));
+    line_data* ld_arr;
+    ld_arr = safe_malloc(sizeof (*ld_arr));
 
     FILE* am;
     am = fopen("test1.am","r");
@@ -17,32 +21,12 @@ int main(int argc, char* argv[]){
         printf("Error opening the file.\n");
         return 1;
     }
-    first_pass ( am);
-    /*
-   line_data* ld = NULL;
-    line_data* ld_arr;
-    ld_arr = malloc(sizeof (line_data)*10);
-    while (fgets(line, MAX_LINE_SIZE, am)) {
-        printf("\n%s\n", line);
-        ld = create_line_data(line);
-        ld_arr[i] = *ld;
-        i++;
+    first_pass (am, symbol_table, ld_arr, ic, dc);
 
-    }
-*/
     fclose(am);
 
     return 0;
 
 }
 
-label_object* label_arr
-/*label_object symbol_table[100];*/
-/*int i;
-    line_data* ld;
-    for(i = 1; i < argc; i++){
-        pre_as(argv[i]);
-        create_line_data(line);
-*/
-/*const char line [100] = "main: mov @r3, length";*/
 

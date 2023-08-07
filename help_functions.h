@@ -4,6 +4,10 @@
 
 #ifndef ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
 #define ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
+#include "line_parser.h"
+
+typedef enum {false, true} bool;
+
 char* copy_word (const char* line, int* index);
 void skip_spaces (int* index,const char* line);
 int args_counter (char* inst_line);

@@ -131,7 +131,7 @@ bool is_commas_valid(char* args){
 void* safe_malloc(size_t size) {
     void* ptr = malloc(size);
     if (ptr == NULL) {
-        printf("Memory allocation failed. Exiting...\n");
+        printf("Memory allocation failed.\n");
         exit(EXIT_FAILURE);
     }
     return ptr;

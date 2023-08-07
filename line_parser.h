@@ -16,7 +16,7 @@
 #define REGISTERS_NUM 8
 #define INST_SIZE 16
 
-typedef enum bool {false, true} bool;
+
 
 /*Instruction Line Data Structures:*/
 
@@ -43,6 +43,9 @@ typedef enum opcode_names {
 extern char* inst_Arr[16];
 
 extern char* rgstrs[8];
+
+typedef enum {SUCCESS, INVALID_FIRST_WORD, INVALID_ARGS_AMOUNT}error_index;/*all errors option */
+
 
 typedef enum address_type{
     immediate = 1,
@@ -85,12 +88,18 @@ typedef enum direction_type {
 
 typedef struct data_arr { ;
     int *data_arr;/*if it's a data*/
-    int data_arr_size;
+    size_t data_arr_size;
 }data_arr;
+
+typedef struct string_data { ;
+    char* string; /*if it's a string*/
+    size_t str_len;
+}str_d;
+
 
 typedef union direction_content{
     data_arr* d_arr;/*if it's a data*/
-    char* string; /*if it's a string*/
+    str_d* string;
     char** entry; /*if it's an entry*/
     char** extern_; /*if it's an extern*/
 }direction_content;
@@ -106,12 +115,13 @@ typedef struct direction {
 typedef struct line_data{
 
     char label_name[31];
+    int labal_value;
+    bool is_label_def;
     bool is_instruction;
     bool is_direction;
     bool is_comment;
     bool is_empty_line;
-    bool is_error;
-    char** errors_arr;
+    error_index ei;
     direction* dir;
     instruction* inst;
 
@@ -122,7 +132,7 @@ typedef struct line_data{
 
 /*function declarations*/
 
-line_data* create_line_data(char* temp_line);
+line_data* create_line_data(char *line);
 bool is_direction (char* word);
 bool is_args_as_expected(op_args_mthd* op_args_to_validate);
 bool is_valid_string(char* string_line);
