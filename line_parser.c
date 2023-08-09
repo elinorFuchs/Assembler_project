@@ -1,14 +1,12 @@
 /*Created by elifu on 02/08/2023.*/
 
 #include "line_parser.h"
-#include "help_functions.h"
-
 
 
 char* inst_Arr[16] = {"mov","cmp","add","sub","not","clr","lea","inc",
                       "dec","jmp","bne","red","prn","jsr","rts","stop"};
 
-char* rgstrs[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
+/*char* rgstrs[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};*/
 
 op_args_mthd op_args_arr [16] = {
         {lea,label,none,none,label,reg,none},
@@ -28,7 +26,7 @@ op_args_mthd op_args_arr [16] = {
         {stop,none,none,none,none,none,none},
         {rts,none,none,none,none,none,none}
         };
-char* errors[] = {"", "Error: invalid first word","error: "};/**/
+
 
 line_data* create_line_data(char *line) {
 
@@ -51,12 +49,15 @@ line_data* create_line_data(char *line) {
     }
     /*check if it's a label*/
     if (is_label_def(word)) {
+        if(is_instruction(word)){/*label name can't be the same as opcode*/
+            ld->ei = OPCODE_LABEL_NAME;
+            return ld;
+        }
         ld->is_label_def = true;
         strcpy(ld->label_name, word) ;
         word = copy_word (temp_line, &index);/*we continue check the next word after the label definition*/
     }
-
-    if(is_direction(word)) {
+    if(is_direction(word,ld)) {
         ld->is_direction = true;
         ld->dir = (direction*)safe_malloc(sizeof (direction));
         ld->dir->d_content = (direction_content*)safe_malloc(sizeof (direction_content));
@@ -65,33 +66,41 @@ line_data* create_line_data(char *line) {
         if(d_t == d_string){
             ld->dir->d_type = d_string;
             string_parser(temp_line, ld, &index);
+            if(0 == ld->dir->d_content->string->str_len)
+                ld->ei = NO_CONTENT_DIRECTION;
         }
         else if (d_t == d_data){
             ld->dir->d_type = d_data;
             data_parser(temp_line, ld, &index);
+            if(ld->dir->d_content->d_arr->data_arr_size == 0) {
+                ld->ei = NO_CONTENT_DIRECTION;
+            }
         }
         else if (d_t == d_entry || d_t == d_extern) {
             char *args;
             args = (char *) safe_malloc(MAX_LINE_SIZE * sizeof(char));
             if (ld->is_label_def) {/*there is label definition before .entry or .extern*/
                 strcpy(ld->label_name, "");/*delete the label definition before .extern, it's meaningless */
-                printf("Warning: the is unnecessary label definition before .entry or .extern.\n");
+                ld->ei = UNNECESSARY_LABEL;
             }
             skip_spaces(&index, temp_line);/*index is pointing after the .entry or .extern*/
             strcpy(args, &temp_line[index]);
-
             if (d_t == d_entry) {
                 ld->dir->d_type = d_entry;
                 set_entry_labels(ld, args);/*put the args in string arr */
-            } else if (d_t == d_extern) {
+                if (ld->dir->d_content->en_arr->entry == NULL)
+                    ld->ei = NO_CONTENT_DIRECTION;
+            } else {
                 ld->dir->d_type = d_extern;
                 set_extern_labels(ld, args);/*put the args in string arr */
-
+                if (ld->dir->d_content->ex_arr->extern_ == NULL)
+                    ld->ei = NO_CONTENT_DIRECTION;
             }
         }
-
+        else{/*Invalid data type*/
+            ld->ei = UNDEFINED_DATA_NAME;
+        }
     }
-    
     else if (which_instruction(word) != invalid){/*it's an instruction line*/
         ld->is_instruction = true;
         opcode code = which_instruction(word);
@@ -100,11 +109,26 @@ line_data* create_line_data(char *line) {
         ld->inst->op_args_type->code = code;
 
         inst_args_parser(temp_line, code, &index, ld);/*check commas, count arguments, check if the address method is valid .do all the ld struct updates*/
+
+        /*line keeper update*/
+        int keeper_count = 1;/*at least 1 for the code*/
+        address_type s_type = ld->inst->op_args_type->src[0];
+        address_type d_type = ld->inst->op_args_type->dest[0];
+
+        if ((s_type == reg && d_type == reg) || (s_type == none) || d_type == none) {/*only one more line needed*/
+            keeper_count++;
+            ld->inst->inst_line_keeper = keeper_count;
+        }
+        if (s_type == none && d_type == none){
+            ld->inst->inst_line_keeper = keeper_count;
+        }
+        else{
+            keeper_count += 2;/*two more lines needed*/
+            ld->inst->inst_line_keeper = keeper_count;
+        }
     }
     else /*not valid first word - get error*/
     ld->ei = INVALID_FIRST_WORD;
-    
-
    return ld;/*if returns invalid ld, inst or dir not valid, need to have a flag about it*/
 }
 
@@ -112,7 +136,7 @@ bool is_label_def (char* word){
 
     int length = strlen(word),i = 0;
     if (length > MAX_LABEL_SIZE){
-        /*printf("first word is too long for label definition / direction or instruction");*/
+        printf("Error: first word is too long for label definition / direction or instruction.\n");
         return false;
     }
     if (!(isalpha(word[0]))){/*the first character of a label must be a-z or A-Z*/
@@ -125,17 +149,12 @@ bool is_label_def (char* word){
     }
     if(strcmp(&word[length-1],":") != 0 )
         return false;
-    word[length-1] = '\0';/*replace the ':' with null terminator to save the label name*/
-    if(is_instruction(word)){
+    word[length-1] = '\0';/*replace ':' with null terminator*/
 
-        printf("label name can't be an instruction opcode");
-        return false;
-    }
     return  true;
 }
 
-bool is_valid_string(char* string_line) {
-    /*skip spaces in beginning, search for quote, search for end quote check if there is something after*/
+bool is_valid_string(char *string_line, line_data *ld) {
     size_t s_len = strlen(string_line);
     int i =0;
     skip_spaces(&i,string_line);
@@ -148,8 +167,10 @@ bool is_valid_string(char* string_line) {
             (i)++;
             while (string_line[i] != '\0') {/*check if there is more invalid char after the string*/
                 skip_spaces(&i, string_line);
-                if (string_line[i] != '\0')
+                if (string_line[i] != '\0') {
+                    ld->ei = CHAR_AFTER_QUOTE;
                     return false;
+                }
             }
             return true;
         }/*the lind ended and there is no ending quote*/
@@ -162,24 +183,23 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
 
     char* string_line;
     char* args;
-    size_t str_len;
 
     string_line = safe_malloc(strlen(temp_line) + 1);
     ld->dir->d_content->string = (str_d*)safe_malloc(sizeof(str_d));
     ld->dir->d_content->string->string = (char*)safe_malloc(strlen(temp_line) + 1);
 
     strcpy(string_line,&temp_line[*index]);/*index is pointing to after .string*/
+    ld->dir->d_content->string->str_len = 0;
 
-    if(is_valid_string(string_line)){/*include error message if not, skip spaces in beginning, search for quote, search for end quote check if there is something after*/
+    if(is_valid_string(string_line, ld)){/*include error message if not, search for quotes*/
         args = copy_s_args(string_line);/*skip spaces in the beginning, find quote, copy till the ending quote:*/
 
         strcpy(ld->dir->d_content->string->string, args);/*put the .string argument in line_data struct*/
         ld->dir->d_content->string->str_len = strlen(args);
-        ld->dir->dir_line_keeper = strlen(args);
+        ld->dir->dir_line_keeper =strlen(args)+1;
    }
     else /*not a valid string*/
         return false;
-
     return true;
 }
 
@@ -212,28 +232,25 @@ bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*
     char* inst_line = malloc(sizeof(char));
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
 
-    if(!(is_commas_valid(inst_line))){/*there is invalid comma*/
+    if(!(is_commas_valid(inst_line,ld))){/*there is invalid comma*/
         return false;
     }
     int args_count = args_counter (inst_line);
     if(!(a_count_as_expected(code, args_count))){/*the number of arguments is invalid*/
-        printf("error args amount is not valid.\n");
+        ld->ei = INVALID_ARGS_AMOUNT;
         return false;
     }
-
     if(!(set_op_args(inst_line,ld))){
         return false;
     }
-
-    if(!(is_args_as_expected(ld->inst->op_args_type))){/*the args address method is invalid -inc debug returned fales expected true*/
-        printf("error args type is not valid.\n");
+    if(!(is_args_as_expected(ld->inst->op_args_type))){/*the args address method is invalid -inc debug returned false expected true*/
+        ld->ei = INVALID_ARGS_ADD_METHOD;
         return false;
     }
     return  true;
 }
 
-bool is_args_as_expected(op_args_mthd * op_args_to_validate)
-{
+bool is_args_as_expected(op_args_mthd* op_args_to_validate){
     int i;
     int j;
     int k;
@@ -265,12 +282,12 @@ bool set_op_args(char* data_args, line_data* ld) {
         return true;
     }
     else if (!(is_inst_arg_valid(first_arg))) {
-        printf("instruction argument isn't valid\n");
+        ld->ei = INVALID_INST_ARGS;
         return false;
     }
     if (second_arg != NULL) {
         if (!(is_inst_arg_valid(second_arg))) {
-            printf("instruction argument isn't valid\n");
+            ld->ei = INVALID_INST_ARGS;
             return false;
         }
         set_src_add(first_arg, ld);
@@ -281,6 +298,7 @@ bool set_op_args(char* data_args, line_data* ld) {
         set_dest_add(first_arg, ld);
         return true;
     }
+    return true;
 }
     bool is_inst_arg_valid(char *argument) {
 
@@ -288,7 +306,6 @@ bool set_op_args(char* data_args, line_data* ld) {
             return true;
         else
             return false;
-
     }
 
     void set_src_add(char *arg, line_data *ld) {
@@ -353,6 +370,7 @@ bool set_op_args(char* data_args, line_data* ld) {
             }
             i++;
         }
+        return true;
     }
 
     bool a_count_as_expected(opcode op, int args_c) {
@@ -368,15 +386,11 @@ bool set_op_args(char* data_args, line_data* ld) {
         char *data_line = malloc(sizeof(char));
 
         strcpy(data_line, &temp_line[*index]);/*index is pointing to after .data*/
-        if (!is_valid_data(data_line)) {/*include error message if not, skip spaces in beginning,check commas*/
+        if (!is_valid_data(data_line,ld)) {/*include error message if not, skip spaces in beginning,check commas*/
             return false;
         }
         copy_d_args(data_line, ld);/*skip spaces in the beginning, creat int array*/
         return true;
-    }
-
-    bool is_more_args(char *line, int *index) {
-        return false;
     }
 
     bool is_A_group(opcode code) {
@@ -396,11 +410,10 @@ bool set_op_args(char* data_args, line_data* ld) {
         return false;
     }
 
-
-    bool is_valid_data(char *data_line) {
+    bool is_valid_data(char *data_line, line_data* ld) {
         int i;
 
-        if (!(is_commas_valid(data_line)))
+        if (!(is_commas_valid(data_line,ld)))
             return false;
         for (i = 0; i < strlen(data_line); i++) {
             skip_spaces(&i, data_line);
@@ -437,15 +450,17 @@ bool set_op_args(char* data_args, line_data* ld) {
             skip_commas(&i, data_line);
 
             if (j >= data_size) /*reallocate memory*/
-                resize_arr(&d_args, &data_size);/*maybe need to update data size?*/
+                resize_int_arr(&d_args, &data_size);/*maybe need to update data size?*/
         }
         
         ld->dir->d_content->d_arr = (data_arr*)safe_malloc(j * sizeof(data_arr));
         ld->dir->d_content->d_arr->data_arr = (int*)safe_malloc(j * sizeof(int));
+        ld->dir->d_content->d_arr->data_arr = 0;
 
         ld->dir->d_content->d_arr->data_arr = d_args;
         ld->dir->d_content->d_arr->data_arr_size = j;
-        /*print for debuging*/
+        ld->dir->dir_line_keeper = j;
+        /*print for debugging*/
         int k;
         for ( k = 0; k < j; ++k) {
             printf("%d\n", ld->dir->d_content->d_arr->data_arr[k]);
@@ -453,40 +468,35 @@ bool set_op_args(char* data_args, line_data* ld) {
         return;
     }
 
-
-
     direction_type which_data_type(char *word) {
-            direction_type dt = invalid_data;
-            int i;
-            char *directions_string[DIRECTION_NUM] = {".string", ".data", ".entry", ".extern"};
+        direction_type dt = invalid_data;
+        int i;
+        char *directions_string[DIRECTION_NUM] = {".string", ".data", ".entry", ".extern"};
 
-            for (i = 0; i < DIRECTION_NUM; i++) {
-                if (0 == strcmp(directions_string[i], word)) {
-                    switch (i) {
-                        case 0:
-                            dt = d_string;
-                            break;
-                        case 1:
-                            dt = d_data;
-                            break;
-                        case 2:
-                            dt = d_entry;
-                            break;
-                        case 3:
-                            dt = d_extern;
-                            break;
-                        default:
-                            break;
-                    }
+        for (i = 0; i < DIRECTION_NUM; i++) {
+            if (0 == strcmp(directions_string[i], word)) {
+                switch (i) {
+                    case 0:
+                        dt = d_string;
+                        break;
+                    case 1:
+                        dt = d_data;
+                        break;
+                    case 2:
+                        dt = d_entry;
+                        break;
+                    case 3:
+                        dt = d_extern;
+                        break;
+                    default:
+                        break;
                 }
             }
-            if (dt == invalid_data) {
-                printf("\nUndefined data name\n");
-            }
-            return dt;
         }
+        return dt;
+    }
 
-        bool is_direction(char *word) {
+    bool is_direction(char *word, line_data* ld) {
             int i;
             char *directions_string[DIRECTION_NUM] = {".string", ".data", ".entry", ".extern"};
 
@@ -495,19 +505,18 @@ bool set_op_args(char* data_args, line_data* ld) {
                     return true;
                 else if (strncmp(directions_string[i], word, strlen(directions_string[i])) == 0) {
                     if (word[strlen(word)] == ',') {
-                        printf("Error: illegal comma at the end of the direction word");
-                    }
-                    return false;
+                        ld->ei = COMMA_AT_END_OF_D_WORD;
+                         return false;}
                 }
             }
             return false;
-        }
+    }
 
-        opcode which_instruction(char *word) {
+    opcode which_instruction(char *word) {
             opcode code_name = invalid;
             int i;
 
-            for (i = 0; i < INST_SIZE; i++) {/*debug because loop conitnue after finding the word*/
+            for (i = 0; i < INST_SIZE; i++) {
                 if (0 == strcmp(inst_Arr[i], word)) {
                     switch (i) {
                         case 0:
@@ -567,8 +576,7 @@ bool set_op_args(char* data_args, line_data* ld) {
             }
             return code_name;
         }
-
-        bool is_instruction(char *word) {
+    bool is_instruction(char *word) {
             int i;
             for (i = 0; i < INST_SIZE; i++) {
                 if (strcmp(word, inst_Arr[i]) == 0)
@@ -576,14 +584,8 @@ bool set_op_args(char* data_args, line_data* ld) {
             }
             return false;
         }
-
     void set_entry_labels(line_data* ld, char* args){
 
-        if (ld == NULL || ld->dir == NULL || ld->dir->d_content == NULL) {
-           
-            fprintf(stderr, "Error: One or more pointers are NULL.\n");
-            return;  
-            }
         int count, i, k;
         char* label_name;
         char** entry_label_arr;
@@ -603,21 +605,100 @@ bool set_op_args(char* data_args, line_data* ld) {
                 strcpy(entry_label_arr[i], label_name);
             } /*else error*/
         }
-        ld->dir->d_content->entry = (char**)safe_malloc(count * sizeof(char*));
+        ld->dir->d_content->en_arr->entry = (char**)safe_malloc(count * sizeof(char*));
 
         for (i = 0; i < count; i++) {
-            ld->dir->d_content->entry[i] = (char*)safe_malloc(strlen(entry_label_arr[i])+1);
-            strcpy(ld->dir->d_content->entry[i], entry_label_arr[i]);
+            ld->dir->d_content->en_arr->entry[i] = (char*)safe_malloc(strlen(entry_label_arr[i])+1);
+            strcpy(ld->dir->d_content->en_arr->entry[i], entry_label_arr[i]);
         }
+        ld->dir->d_content->en_arr->en_size = count;
         /*DEBUG PRINT*/
         for (i = 0; i < count; i++) {
-            printf("%s \n", ld->dir->d_content->entry[i]);
+            printf("%s \n", ld->dir->d_content->en_arr->entry[i]);
         }
         free(entry_label_arr);
         return;
     }
  void set_extern_labels(line_data * ld, char* args){
-    printf("to implement");
-      return;
-      }
+     int count, i, k;
+     char* extrn_name;
+     char** e_arr;
+
+     count = args_counter(args);
+     e_arr = (char**)safe_malloc(count*(sizeof (char*)));
+
+     for (i = 0, k = 0; i < count; i++) {
+         skip_spaces(&k,args);
+         skip_commas(&k, args);
+         extrn_name = copy_word(args, &k);
+
+         if(extrn_name == NULL)
+             break;
+         if(is_label(extrn_name)) {
+             e_arr[i] = (char*)safe_malloc(strlen((extrn_name))+1);
+             strcpy(e_arr[i], extrn_name);
+         } /*else error*/
+     }
+     ld->dir->d_content->ex_arr->extern_ = (char**)safe_malloc(count * sizeof(char*));
+     for (i = 0; i < count; i++) {
+         ld->dir->d_content->ex_arr->extern_[i] = (char*)safe_malloc(strlen(e_arr[i])+1);
+         strcpy(ld->dir->d_content->ex_arr->extern_[i], e_arr[i]);
+     }
+     /*DEBUG PRINT*/
+     for (i = 0; i < count; i++) {
+         printf("%s \n", ld->dir->d_content->ex_arr->extern_[i]);
+     }
+     ld->dir->d_content->ex_arr->ex_size = count;
+
+     free(e_arr);
+     return;
+ }
+bool is_commas_valid(char* args, line_data * ld){
+
+    size_t length = strlen(args);
+    int i = 0;
+    bool isValid = false;
+    bool hasArgument = false;
+    bool previousIsComma = false; /* Track if the previous character was a comma*/
+    skip_spaces(&i,args);
+    if(args[i] == '\0') {/*it's an empty line*/
+        isValid = true;
+        return isValid;
+    }
+    /* Check for comma at the beginning*/
+    if (args[i] == ',') {
+        ld->ei = ILLEGAL_COMMA;
+        isValid = false;
+        return isValid;
+    }
+    for (; i < length; i++) {
+        if (args[i] == ',') {
+            /* Check if there are consecutive commas or a comma at the end*/
+            if(previousIsComma){
+                isValid = false;
+                ld->ei = MULT_COMMAS;
+                break;
+            }
+            else if (!hasArgument)  {
+                ld->ei = ILLEGAL_COMMA;
+                isValid = false;
+                break;
+            }
+            previousIsComma = 1;
+        }
+        else if (!isspace(args[i])) {
+            if(hasArgument == true && isspace(args[i-1]) && previousIsComma == false){
+                ld->ei = MISSING_COMMA;
+                isValid = false;
+                break;
+            }
+            else{
+                hasArgument = true;
+                isValid = true; /* Mark as valid when encountering the first non-space character*/
+                previousIsComma = false;
+            }
+        }
+    }
+    return isValid;
+}
 

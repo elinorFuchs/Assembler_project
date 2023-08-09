@@ -1,4 +1,5 @@
 /*Created by elifu on 02/08/2023.*/
+
 #include "line_parser.h"
 #include "help_functions.h"
 
@@ -70,76 +71,25 @@ int string_to_sign_int(char* data_line, int* index) {
     return num * sign;
 }
 
-bool is_commas_valid(char* args){
 
-    size_t length = strlen(args);
-    int i = 0;
-    bool isValid = false;
-    bool hasArgument = false;
-    bool previousIsComma = false; /* Track if the previous character was a comma*/
-    skip_spaces(&i,args);
-    if(args[i] == '\0') {/*it's an empty line*/
-        isValid = true;
-        return isValid;
-    }
-    /* Check for comma at the beginning*/
-    if (args[i] == ',') {
-        printf("\nIllegal comma\n");
-        isValid = false;
-        return isValid;
-    }
-    for (; i < length; i++) {
-        if (args[i] == ',') {
-            /* Check if there are consecutive commas or a comma at the end*/
-            if(previousIsComma){
-                isValid = false;
-                printf("\nMultiple consecutive commas\n");
-                break;
-            }
-            else if((i + 1) == (length-1)){
-                printf("\nExtraneous text after end of command\n");
-                isValid = false;
-                break;
-            }
-            else if (!hasArgument)  {
-                printf("\nIllegal comma\n");
-                isValid = false;
-                break;
-            }
-
-            previousIsComma = 1;
-        }
-        else if (!isspace(args[i])) {
-            if(hasArgument == true && isspace(args[i-1]) && previousIsComma == false){
-                printf("\nMissing comma\n");
-                isValid = false;
-                break;
-            }
-            else{
-                hasArgument = true;
-                isValid = true; /* Mark as valid when encountering the first non-space character*/
-                previousIsComma = false;
-            }
-        }
-    }
-    return isValid;
-}
 
 void* safe_malloc(size_t size) {
     void* ptr = malloc(size);
     if (ptr == NULL) {
         printf("Memory allocation failed.\n");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
     return ptr;
 }
-void resize_arr(int** arr, int* size) {
+void resize_int_arr(int** arr, int* size) {
     *size *= 2;
     int* temp_arr = (int*)realloc(*arr, (*size) * sizeof(int));
     if (temp_arr == NULL) {
-        printf("Memory reallocation failed. Exiting...\n");
+        printf("Memory reallocation failed.\n");
         free(*arr);
-        exit(EXIT_FAILURE);
+        exit(1);
     }
     *arr = temp_arr;
 }
+
+

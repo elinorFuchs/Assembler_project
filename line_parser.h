@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "help_functions.h"
+
 #define DIRECTION_NUM 4
 #define MAX_LABEL_SIZE 31
 #define MAX_LINE_SIZE 82
@@ -41,7 +42,10 @@ extern char* inst_Arr[16];
 
 extern char* rgstrs[8];
 
-typedef enum {SUCCESS, INVALID_FIRST_WORD, INVALID_ARGS_AMOUNT}error_index;/*all errors option */
+typedef enum {SUCCESS, INVALID_FIRST_WORD,UNDEFINED_DATA_NAME, UNNECESSARY_LABEL,OPCODE_LABEL_NAME ,INVALID_ARGS_AMOUNT
+              ,INVALID_ARGS_ADD_METHOD, INVALID_INST_ARGS,COMMA_AT_END_OF_D_WORD,MISSING_COMMA,ILLEGAL_COMMA,MULT_COMMAS,
+              EXTERN_DEFINED,CHAR_AFTER_QUOTE,NO_CONTENT_DIRECTION
+              }error_index;/*all errors option */
 
 
 typedef enum address_type{
@@ -90,15 +94,24 @@ typedef struct data_arr {
 
 typedef struct string_data { 
     char* string; /*if it's a string*/
-    size_t str_len;
+    int str_len;
 }str_d;
 
+typedef struct {
+    char** entry;
+    int en_size;
+}entry_arr;
+
+typedef struct {
+    char** extern_;
+    int ex_size;
+}extern_arr;
 
 typedef union direction_content{
-    data_arr* d_arr;/*if it's a data*/
+    data_arr* d_arr;
     str_d* string;
-    char** entry; /*if it's an entry*/
-    char** extern_; /*if it's an extern*/
+    entry_arr* en_arr;
+    extern_arr* ex_arr;
 }direction_content;
 
 typedef struct direction {
@@ -113,25 +126,24 @@ typedef struct line_data{
 
     char label_name[31];
     int labal_value;
+    error_index ei;
+    direction* dir;
+    instruction* inst;
     bool is_label_def;
     bool is_instruction;
     bool is_direction;
     bool is_comment;
     bool is_empty_line;
-    error_index ei;
-    direction* dir;
-    instruction* inst;
 
 }line_data;
-
 
 
 /*function declarations*/
 
 line_data* create_line_data(char *line);
-bool is_direction (char* word);
+bool is_direction (char* word, line_data* ld);
 bool is_args_as_expected(op_args_mthd* op_args_to_validate);
-bool is_valid_string(char* string_line);
+bool is_valid_string(char *string_line, line_data *ld);
 bool is_label_def (char* word);
 bool is_instruction(char* word);
 direction_type which_data_type(char* word);
@@ -145,7 +157,7 @@ bool string_parser(char* line, line_data* ld, int* index);
 char *copy_s_args(char *string_line);
 bool data_parser(char* temp_line, line_data* ld, int* index);
 void copy_d_args(char* data_line, line_data* ld);
-bool is_valid_data(char* data_line);
+bool is_valid_data(char *data_line, line_data *ld);
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld);
 bool a_count_as_expected(opcode op, int args_c);
 bool set_op_args(char *data_args, line_data* ld);
@@ -157,5 +169,6 @@ bool is_register(char* arg);
 bool is_inst_arg_valid(char* argument);
 void set_extern_labels(line_data * ld, char* args);
 void set_entry_labels(line_data * ld, char* args);
+bool is_commas_valid(char* args, line_data* ld);
 
 #endif /*ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H*/

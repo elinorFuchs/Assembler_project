@@ -1,4 +1,19 @@
 ; made by alex
+.data
+dec SHALOM
+stop
+_______________
+sub r1, r4
+bne END
+_______________
+red r3
+jsr K
+jmp LINE
+inc r2
+mov A, r1
+rts
+macro3 macro1
+LOOP: jmp L1 (#-1, r7)
 LENGTH: .data 6, -9, 15
 .entry STR, ELINOR  , ELI
 .string "hello"
@@ -9,12 +24,21 @@ inc r2
 mov A, r1
 rts
 .extern LINE
-LOOP: jmp L1 (#-1, r7)
+
 mcrolik
 macro4
 prn #-5
 cmp #-32, K
-K: bne LOOP(r4, r3) 
+K: bne LOOP(r4, r3)
+sub #22, aaa
+lea HELLO, r5
+Num: .data 256
+.extern SHALOM
+clr r4
+X: dec Num
+red r6
+jsr aaa(#75, X)
+A: inc X
 add #-78, r0
 .string "hello"
 jmp SHALOM (LINE, LOOP)
@@ -25,30 +49,8 @@ END: stop
 HELLO: not r7
 STR: .string "cbasfg54"
 macro4
-
-sub #22, aaa
-lea HELLO, r5
-Num: .data 256
-.extern SHALOM
-clr r4
-X: dec Num
-red r6
-jsr aaa(#75, X)
-A: inc X
 .entry LOOP
 bne SHALOM(r2, STR)
 inc STR
-dec SHALOM
-stop
-_______________
-sub r1, r4
-bne END
-_______________
-red r3
-jsr K
-jmp LINE
-inc r2 
-mov A, r1
-rts
-macro3 macro1
+
 ; end of file 
