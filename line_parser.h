@@ -1,9 +1,8 @@
-//
-// Created by elifu on 02/08/2023.
-//
+/*Created by elifu on 02/08/2023.*/
 
 #ifndef ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
 #define ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
+
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
@@ -15,8 +14,6 @@
 #define VALID_ADDRSS_MTHDS 3
 #define REGISTERS_NUM 8
 #define INST_SIZE 16
-
-
 
 /*Instruction Line Data Structures:*/
 
@@ -86,12 +83,12 @@ typedef enum direction_type {
     invalid_data
 }direction_type;
 
-typedef struct data_arr { ;
+typedef struct data_arr { 
     int *data_arr;/*if it's a data*/
     size_t data_arr_size;
 }data_arr;
 
-typedef struct string_data { ;
+typedef struct string_data { 
     char* string; /*if it's a string*/
     size_t str_len;
 }str_d;
@@ -125,7 +122,6 @@ typedef struct line_data{
     direction* dir;
     instruction* inst;
 
-
 }line_data;
 
 
@@ -145,7 +141,7 @@ bool is_B_group(opcode code);
 bool is_C_group(opcode code);
 char* copy_string(char* line,int* index);
 bool is_more_args(char *line, int *index);
-bool string_parser(char* line, line_data* ld, int* index)  ;
+bool string_parser(char* line, line_data* ld, int* index);
 char *copy_s_args(char *string_line);
 bool data_parser(char* temp_line, line_data* ld, int* index);
 void copy_d_args(char* data_line, line_data* ld);
@@ -159,8 +155,7 @@ bool is_immediate(char* arg);
 bool is_label(char* arg);
 bool is_register(char* arg);
 bool is_inst_arg_valid(char* argument);
-void set_entry_labels(direction_content* dc);
-void set_extern_labels(direction_content* dc);
+void set_extern_labels(line_data * ld, char* args);
+void set_entry_labels(line_data * ld, char* args);
 
-#endif //ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
-
+#endif /*ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H*/

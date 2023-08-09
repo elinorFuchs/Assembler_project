@@ -1,6 +1,4 @@
-//
-// Created by elifu on 02/08/2023.
-//
+/*Created by elifu on 02/08/2023.*/
 
 #include "assembler.h"
 #include "line_parser.h"
@@ -11,17 +9,21 @@ int main(int argc, char* argv[]){
 
     int* ic, *dc;
     label_object* symbol_table;
-    symbol_table = (label_object*) safe_malloc(sizeof (label_object));
     line_data* ld_arr;
+     FILE* am;
+    
+    symbol_table = (label_object*) safe_malloc(sizeof (label_object));
     ld_arr = safe_malloc(sizeof (*ld_arr));
 
-    FILE* am;
+   
     am = fopen("test1.am","r");
     if (am == NULL) {
         printf("Error opening the file.\n");
         return 1;
     }
+
     first_pass (am, symbol_table, ld_arr, ic, dc);
+    /*second_pass(symbol_table, ld_arr, ic, dc)*/
 
     fclose(am);
 

@@ -1,6 +1,4 @@
-//
-// Created by elifu on 02/08/2023.
-//
+/*Created by elifu on 02/08/2023.*/
 
 #include "first_pass.h"
 
@@ -72,13 +70,9 @@ bool create_symbol_table (line_data* ld_arr, label_object* symbol_table[], int* 
 }
 
 
-
-
-
 void add_to_symbol_table (label_object* label,label_object* symbol_table){}
 
 bool search_label(char* label_name, label_object* symbol_table[]){
-
     int i;
     /*label_object* which_label;*/
     for(i = 0; i < 50; i++){
@@ -94,6 +88,5 @@ bool search_label(char* label_name, label_object* symbol_table[]){
             }
         }
     }
-    return true;/*the label define is valid- it's not already in the label table*/
-
+    return true;/*the label define is valid - it's not already in the label table*/
 }

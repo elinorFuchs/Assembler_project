@@ -1,16 +1,15 @@
-//
-// Created by elifu on 02/08/2023.
-//
+/*Created by elifu on 02/08/2023.*/
 #include "line_parser.h"
 #include "help_functions.h"
-/*1*/
+
 char* copy_word(const char* line, int* index) {
 
     skip_spaces(index, line);
+    skip_commas(index, line);
     int length = 0;
     int length_index = *index;
 
-    while (!(isspace(line[length_index]) || line[length_index] == '\0' || line[length_index] == EOF )) {
+    while (!(isspace(line[length_index]) ||  line[length_index] == ',' || line[length_index] == '\0' || line[length_index] == EOF )) {
         length++;
         length_index++;
     }
@@ -18,7 +17,6 @@ char* copy_word(const char* line, int* index) {
     if (word == NULL) {
         return NULL;
     }
-
     strncpy(word, &line[*index], length);
     word[length] = '\0';
     *index = length_index;/*index will point to after the word*/
@@ -32,7 +30,7 @@ int args_counter (char* line){
     bool in_word = false;
 
     for (i = 0; line[i] != '\0'; i++) {
-        if (!(isspace(line[i]))) {
+        if (!(isspace(line[i]) || line[i] == ',' )) {
             if (!in_word) {
                 count++;
                 in_word = true;
@@ -69,13 +67,12 @@ int string_to_sign_int(char* data_line, int* index) {
         num = num * 10 + (data_line[*index] - '0');
         (*index)++;
     }
-
     return num * sign;
 }
 
 bool is_commas_valid(char* args){
 
-    int length = strlen(args);
+    size_t length = strlen(args);
     int i = 0;
     bool isValid = false;
     bool hasArgument = false;

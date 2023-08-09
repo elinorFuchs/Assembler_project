@@ -1,6 +1,4 @@
-//
-// Created by elifu on 02/08/2023.
-//
+/*Created by elifu on 02/08/2023.*/
 
 #ifndef ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
 #define ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
@@ -16,4 +14,4 @@ void skip_commas(int* index, const char* line);
 bool is_commas_valid(char* args);
 void* safe_malloc(size_t size);
 void resize_arr(int** arr, int* size);
-#endif //ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H
+#endif /*ASSEMBLER_OPENU_PROJECT_HELP_FUNCTIONS_H*/

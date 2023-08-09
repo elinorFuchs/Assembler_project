@@ -1,5 +1,7 @@
 ; made by alex
 LENGTH: .data 6, -9, 15
+.entry STR, ELINOR  , ELI
+.string "hello"
 MAIN: mov @r3, LENGTH
 .data 10
 0, 25, +7, -12 
@@ -9,7 +11,6 @@ rts
 .extern LINE
 LOOP: jmp L1 (#-1, r7)
 mcrolik
-.entry STR
 macro4
 prn #-5
 cmp #-32, K

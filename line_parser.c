@@ -1,14 +1,15 @@
-//
-// Created by elifu on 02/08/2023.
-//
+/*Created by elifu on 02/08/2023.*/
 
 #include "line_parser.h"
 #include "help_functions.h"
 
-char delim[] =", \t\n\v\f\r";
+
+
 char* inst_Arr[16] = {"mov","cmp","add","sub","not","clr","lea","inc",
                       "dec","jmp","bne","red","prn","jsr","rts","stop"};
+
 char* rgstrs[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
+
 op_args_mthd op_args_arr [16] = {
         {lea,label,none,none,label,reg,none},
         {sub, immediate, label,reg,label,reg,none},
@@ -26,8 +27,8 @@ op_args_mthd op_args_arr [16] = {
         {jsr,none,none,none,label,reg,none},
         {stop,none,none,none,none,none,none},
         {rts,none,none,none,none,none,none}
-};
-char* errors[] = {"", "Error: invalid first word"};/**/
+        };
+char* errors[] = {"", "Error: invalid first word","error: "};/**/
 
 line_data* create_line_data(char *line) {
 
@@ -57,8 +58,8 @@ line_data* create_line_data(char *line) {
 
     if(is_direction(word)) {
         ld->is_direction = true;
-        ld->dir = malloc(sizeof (ld->dir));
-        ld->dir->d_content = malloc(sizeof (ld->dir->d_content));
+        ld->dir = (direction*)safe_malloc(sizeof (direction));
+        ld->dir->d_content = (direction_content*)safe_malloc(sizeof (direction_content));
         direction_type d_t = which_data_type(word);
 
         if(d_t == d_string){
@@ -69,27 +70,28 @@ line_data* create_line_data(char *line) {
             ld->dir->d_type = d_data;
             data_parser(temp_line, ld, &index);
         }
-        else if (d_t == d_entry || d_t == d_extern){
-            int count;
-            char* arg;
-            arg = malloc(sizeof (arg));
-            if(ld->is_label_def){/*there is label definition before .entry or .extern*/
-                strcpy(ld->label_name ,"\0");/*delete the label definition before .extern, it's meaningless */
+        else if (d_t == d_entry || d_t == d_extern) {
+            char *args;
+            args = (char *) safe_malloc(MAX_LINE_SIZE * sizeof(char));
+            if (ld->is_label_def) {/*there is label definition before .entry or .extern*/
+                strcpy(ld->label_name, "");/*delete the label definition before .extern, it's meaningless */
                 printf("Warning: the is unnecessary label definition before .entry or .extern.\n");
             }
-            skip_spaces(&index,temp_line);/*index is pointing after the .entry or .extern*/
-            strcpy(arg,&temp_line[index]);
-            count = args_counter(arg);
-            if(d_t == d_entry) {
-                set_entry_labels(ld->dir->d_content);/*put the args in string arr */
-            }
-            else if(d_t == d_extern){
-                set_extern_labels(ld->dir->d_content);/*put the args in string arr */
+            skip_spaces(&index, temp_line);/*index is pointing after the .entry or .extern*/
+            strcpy(args, &temp_line[index]);
+
+            if (d_t == d_entry) {
+                ld->dir->d_type = d_entry;
+                set_entry_labels(ld, args);/*put the args in string arr */
+            } else if (d_t == d_extern) {
+                ld->dir->d_type = d_extern;
+                set_extern_labels(ld, args);/*put the args in string arr */
 
             }
-
         }
+
     }
+    
     else if (which_instruction(word) != invalid){/*it's an instruction line*/
         ld->is_instruction = true;
         opcode code = which_instruction(word);
@@ -99,9 +101,11 @@ line_data* create_line_data(char *line) {
 
         inst_args_parser(temp_line, code, &index, ld);/*check commas, count arguments, check if the address method is valid .do all the ld struct updates*/
     }
-    else {/*not valid first word - get error*/ld->ei = INVALID_FIRST_WORD;}
+    else /*not valid first word - get error*/
+    ld->ei = INVALID_FIRST_WORD;
+    
 
-    return ld;/*if returns invalid ld, inst or dir not valid, need to have a flag about it*/
+   return ld;/*if returns invalid ld, inst or dir not valid, need to have a flag about it*/
 }
 
 bool is_label_def (char* word){
@@ -156,28 +160,25 @@ bool is_valid_string(char* string_line) {
 
 bool string_parser(char* temp_line, line_data* ld, int* index){
 
-    char* string_line = malloc(sizeof(char));
+    char* string_line;
     char* args;
     size_t str_len;
-    ld->dir->d_content->string = malloc(sizeof (char*));
+
+    string_line = safe_malloc(strlen(temp_line) + 1);
+    ld->dir->d_content->string = (str_d*)safe_malloc(sizeof(str_d));
+    ld->dir->d_content->string->string = (char*)safe_malloc(strlen(temp_line) + 1);
 
     strcpy(string_line,&temp_line[*index]);/*index is pointing to after .string*/
 
     if(is_valid_string(string_line)){/*include error message if not, skip spaces in beginning, search for quote, search for end quote check if there is something after*/
         args = copy_s_args(string_line);/*skip spaces in the beginning, find quote, copy till the ending quote:*/
-        realloc(ld->dir->d_content->string , sizeof (char) * strlen(args));
-        if (ld->dir->d_content->string == NULL) {
-            printf("Memory allocation failed. Exiting...\n");
-            exit(EXIT_FAILURE);
-        }
 
         strcpy(ld->dir->d_content->string->string, args);/*put the .string argument in line_data struct*/
         ld->dir->d_content->string->str_len = strlen(args);
         ld->dir->dir_line_keeper = strlen(args);
-    }
-    else {/*is_string returned false and already know what is the error*/
+   }
+    else /*not a valid string*/
         return false;
-    }
 
     return true;
 }
@@ -253,8 +254,9 @@ bool is_args_as_expected(op_args_mthd * op_args_to_validate)
 }
 
 bool set_op_args(char* data_args, line_data* ld) {
-
-    char *first_arg = strtok(data_args, delim);
+    
+    char delim[] =", \t\n\v\f\r";
+    char *first_arg = strtok(data_args,delim );
     char *second_arg = strtok(NULL, delim);
 
     if (first_arg == NULL) {/*happen only when there is no args at all*/
@@ -355,7 +357,7 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     bool a_count_as_expected(opcode op, int args_c) {
 
-        if (!(is_A_group(op) && args_c == 2 || (is_B_group(op) && args_c == 1) || is_C_group(op) && args_c == 0)) {
+        if (!((is_A_group(op) && args_c == 2) || (is_B_group(op) && args_c == 1) || (is_C_group(op) && args_c == 0))) {
             return false;
         } else
             return true;
@@ -437,9 +439,9 @@ bool set_op_args(char* data_args, line_data* ld) {
             if (j >= data_size) /*reallocate memory*/
                 resize_arr(&d_args, &data_size);/*maybe need to update data size?*/
         }
-        ld->dir->d_content = (direction_content*)safe_malloc(sizeof(*ld->dir->d_content));
-        ld->dir->d_content->d_arr = (int*)safe_malloc(j * sizeof(*ld->dir->d_content->d_arr));
-        ld->dir->d_content->d_arr->data_arr = (int*)safe_malloc(j * sizeof(*d_args));
+        
+        ld->dir->d_content->d_arr = (data_arr*)safe_malloc(j * sizeof(data_arr));
+        ld->dir->d_content->d_arr->data_arr = (int*)safe_malloc(j * sizeof(int));
 
         ld->dir->d_content->d_arr->data_arr = d_args;
         ld->dir->d_content->d_arr->data_arr_size = j;
@@ -456,7 +458,7 @@ bool set_op_args(char* data_args, line_data* ld) {
     direction_type which_data_type(char *word) {
             direction_type dt = invalid_data;
             int i;
-            char *directions_string[DIRECTION_NUM] = {".string", ".data", "entry", ".extern"};
+            char *directions_string[DIRECTION_NUM] = {".string", ".data", ".entry", ".extern"};
 
             for (i = 0; i < DIRECTION_NUM; i++) {
                 if (0 == strcmp(directions_string[i], word)) {
@@ -575,74 +577,47 @@ bool set_op_args(char* data_args, line_data* ld) {
             return false;
         }
 
-    void set_entry_labels(direction_content* dc){}
-    void set_extern_labels(direction_content* dc){}
+    void set_entry_labels(line_data* ld, char* args){
 
+        if (ld == NULL || ld->dir == NULL || ld->dir->d_content == NULL) {
+           
+            fprintf(stderr, "Error: One or more pointers are NULL.\n");
+            return;  
+            }
+        int count, i, k;
+        char* label_name;
+        char** entry_label_arr;
+        
+        count = args_counter(args);
+        entry_label_arr = (char**)safe_malloc(count*(sizeof (char*)));
 
-/*check if argument method is valid
- * if (op_add_method->code == mov || op_add_method->code == add || op_add_method->code == sub){
-        if(!(op_add_method->src[0] == immediate || op_add_method->src[0] == label || op_add_method->src[0] == reg)) {
-            printf("error the src method is invalid");
-            return false;
-        }
-        if(!(op_add_method->dest[0] == label || op_add_method->dest[0] == reg)){
-            printf("error the dest method is invalid");
-            return false;
-        }
-    }
-    else if (op_add_method->code == not || op_add_method->code == clr || op_add_method->code == inc
-    || op_add_method->code == dec || op_add_method->code == jmp || op_add_method->code == bne
-    || op_add_method->code == red || op_add_method->code == jsr){
-        if(!(op_add_method->src[0] == none)) {
-            printf("error the src method is invalid- should be none");
-            return false;
-        }
-        if(!(op_add_method->dest[0] == label || op_add_method->dest[0] == reg)){
-            printf("error the dest method is invalid -should be label or register");
-            return false;
-        }
-    }
-    else if (op_add_method->code == cmp){
-        if(!(op_add_method->src[0] == immediate || op_add_method->src[0] == label || op_add_method->src[0] == reg)) {
-            printf("error the src method is invalid");
-            return false;
-        }
-        if(!(op_add_method->dest[0] == immediate || op_add_method->dest[0] == label || op_add_method->dest[0] == reg)){
-            printf("error the dest method is invalid -shold be label or register");
-            return false;
-        }
-    }
-    else if((op_add_method->code == lea)){
-        if(!(op_add_method->src[0] == label)) {
-            printf("error the src method is invalid- should be label");
-            return false;
-        }
-        if(!(op_add_method->dest[0] == label || op_add_method->dest[0] == reg)){
-            printf("error the dest method is invalid -shold be label or register");
-            return false;
-        }
-    }
-    else if((op_add_method->code == prn)){
-        if(!(op_add_method->src[0] == none)) {
-            printf("error the src method is invalid- should be none");
-            return false;
-        }
-        if(!(op_add_method->dest[0] == immediate|| op_add_method->dest[0] == label || op_add_method->dest[0] == reg)){
-            printf("error the dest method is invalid -shold be label or register");
-            return false;
-        }
-    }
+        for (i = 0, k = 0; i < count; i++) {
+            skip_spaces(&k,args);
+            skip_commas(&k, args);
+            label_name = copy_word(args, &k);
 
-    else if((op_add_method->code == rts || op_add_method->code == stop)){
-        if(!(op_add_method->src[0] == none)) {
-            printf("error the src method is invalid- should be none");
-            return false;
+            if(label_name == NULL)
+                break;
+            if(is_label(label_name)) {
+                entry_label_arr[i] = (char*)safe_malloc(strlen((label_name))+1);
+                strcpy(entry_label_arr[i], label_name);
+            } /*else error*/
         }
-        if(!(op_add_method->dest[0] == none)){
-            printf("error the dest method is invalid -should be none");
-            return false;
+        ld->dir->d_content->entry = (char**)safe_malloc(count * sizeof(char*));
+
+        for (i = 0; i < count; i++) {
+            ld->dir->d_content->entry[i] = (char*)safe_malloc(strlen(entry_label_arr[i])+1);
+            strcpy(ld->dir->d_content->entry[i], entry_label_arr[i]);
         }
-    }*/
-
-
+        /*DEBUG PRINT*/
+        for (i = 0; i < count; i++) {
+            printf("%s \n", ld->dir->d_content->entry[i]);
+        }
+        free(entry_label_arr);
+        return;
+    }
+ void set_extern_labels(line_data * ld, char* args){
+    printf("to implement");
+      return;
+      }
 
