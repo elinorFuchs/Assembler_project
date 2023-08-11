@@ -7,12 +7,14 @@
 #include "line_parser.h"
 #include "help_functions.h"
 
-#define INITIAL_SIZE 50
+#define INITIAL_SIZE 200
 
 
 enum label_type{
+    undefined_type,
     external,
     relocatable
+
 };
 
 typedef struct label_object{

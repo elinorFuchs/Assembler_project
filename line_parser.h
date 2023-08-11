@@ -44,7 +44,7 @@ extern char* rgstrs[8];
 
 typedef enum {SUCCESS, INVALID_FIRST_WORD,UNDEFINED_DATA_NAME, UNNECESSARY_LABEL,OPCODE_LABEL_NAME ,INVALID_ARGS_AMOUNT
               ,INVALID_ARGS_ADD_METHOD, INVALID_INST_ARGS,COMMA_AT_END_OF_D_WORD,MISSING_COMMA,ILLEGAL_COMMA,MULT_COMMAS,
-              EXTERN_DEFINED,CHAR_AFTER_QUOTE,NO_CONTENT_DIRECTION
+              EXTERN_DEFINED,CHAR_AFTER_QUOTE,NO_CONTENT_DIRECTION, DATA_RANGE,LONG_LABEL,LABEL_FIRST_CHAR,INVALID_LABEL_NAME,IMMEDIATE_RANGE
               }error_index;/*all errors option */
 
 
@@ -71,8 +71,8 @@ union arg_name{
 
 typedef struct instruction {
     op_args_mthd* op_args_type;
-    union arg_name* src;
-    union arg_name* dest;
+    char* src_name;
+    char* dest_name;
     int inst_line_keeper;
 
 }instruction;
@@ -163,10 +163,10 @@ bool a_count_as_expected(opcode op, int args_c);
 bool set_op_args(char *data_args, line_data* ld);
 void set_src_add (char* arg, line_data* ld);
 void set_dest_add (char* args, line_data* ld);
-bool is_immediate(char* arg);
-bool is_label(char* arg);
-bool is_register(char* arg);
-bool is_inst_arg_valid(char* argument);
+bool is_immediate(char* arg,line_data* ld);
+bool is_label(char* arg,line_data* ld);
+bool is_register(char* arg, line_data* ld);
+bool is_inst_arg_valid(char *argument, line_data *ld);
 void set_extern_labels(line_data * ld, char* args);
 void set_entry_labels(line_data * ld, char* args);
 bool is_commas_valid(char* args, line_data* ld);

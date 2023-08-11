@@ -73,6 +73,7 @@ int string_to_sign_int(char* data_line, int* index) {
 
 
 
+
 void* safe_malloc(size_t size) {
     void* ptr = malloc(size);
     if (ptr == NULL) {

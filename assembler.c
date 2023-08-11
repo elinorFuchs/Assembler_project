@@ -7,7 +7,7 @@
 #include <stdlib.h>
 int main(int argc, char* argv[]){
 
-    int* ic, *dc;
+    int ic = 0, dc = 0;
     label_object* symbol_table;
     line_data* ld_arr;
      FILE* am;
@@ -16,13 +16,13 @@ int main(int argc, char* argv[]){
     ld_arr = safe_malloc(sizeof (*ld_arr));
 
    
-    am = fopen("test1.am","r");
+    am = fopen("validam.am","r");
     if (am == NULL) {
         printf("Error opening the file.\n");
         return 1;
     }
 
-    first_pass (am, symbol_table, ld_arr, ic, dc);
+    first_pass (am, symbol_table, ld_arr, &ic, &dc);
     /*second_pass(symbol_table, ld_arr, ic, dc)*/
 
     fclose(am);

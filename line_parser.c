@@ -38,8 +38,9 @@ line_data* create_line_data(char *line) {
 
     strcpy(temp_line, line);
     word = copy_word (temp_line,&index);
+    ld->ei = SUCCESS;
 
-    if(word == NULL){/*it's an empty line*/
+    if(*word == "" || *word == NULL){/*it's an empty line*/
         ld->is_empty_line = true;
         return ld;
     }
@@ -59,78 +60,82 @@ line_data* create_line_data(char *line) {
     }
     if(is_direction(word,ld)) {
         ld->is_direction = true;
-        ld->dir = (direction*)safe_malloc(sizeof (direction));
-        ld->dir->d_content = (direction_content*)safe_malloc(sizeof (direction_content));
+        ld->dir = (direction *) safe_malloc(sizeof(direction));
+        ld->dir->d_content = (direction_content *) safe_malloc(sizeof(direction_content));
         direction_type d_t = which_data_type(word);
 
-        if(d_t == d_string){
+        if (d_t == d_string) {
             ld->dir->d_type = d_string;
             string_parser(temp_line, ld, &index);
-            if(0 == ld->dir->d_content->string->str_len)
+            if (0 == ld->dir->d_content->string->str_len)
                 ld->ei = NO_CONTENT_DIRECTION;
-        }
-        else if (d_t == d_data){
+        } else if (d_t == d_data) {
             ld->dir->d_type = d_data;
             data_parser(temp_line, ld, &index);
-            if(ld->dir->d_content->d_arr->data_arr_size == 0) {
+            if (ld->dir->d_content->d_arr->data_arr_size == 0) {
                 ld->ei = NO_CONTENT_DIRECTION;
-            }
+                ld->dir->dir_line_keeper = 0;
+            } else
+                ld->dir->dir_line_keeper = ld->dir->d_content->d_arr->data_arr_size;/*keep lines as the size of the data array*/
         }
         else if (d_t == d_entry || d_t == d_extern) {
-            char *args;
-            args = (char *) safe_malloc(MAX_LINE_SIZE * sizeof(char));
-            if (ld->is_label_def) {/*there is label definition before .entry or .extern*/
-                strcpy(ld->label_name, "");/*delete the label definition before .extern, it's meaningless */
-                ld->ei = UNNECESSARY_LABEL;
+                char *args;
+                args = (char *) safe_malloc(MAX_LINE_SIZE * sizeof(char));
+                if (ld->is_label_def) {/*there is label definition before .entry or .extern*/
+                    strcpy(ld->label_name, "");/*delete the label definition before .extern, it's meaningless */
+                    ld->ei = UNNECESSARY_LABEL;
+                }
+                skip_spaces(&index, temp_line);/*index is pointing after the .entry or .extern*/
+                strcpy(args, &temp_line[index]);
+                if (d_t == d_entry) {
+                    ld->dir->d_type = d_entry;
+                    set_entry_labels(ld, args);/*put the args in string arr */
+                    if (ld->dir->d_content->en_arr->entry == NULL)
+                        ld->ei = NO_CONTENT_DIRECTION;
+                } else {
+                    ld->dir->d_type = d_extern;
+                    set_extern_labels(ld, args);/*put the args in string arr */
+                    if (ld->dir->d_content->ex_arr->extern_ == NULL)
+                        ld->ei = NO_CONTENT_DIRECTION;
+                }
+            } else {/*Invalid data type*/
+                ld->ei = UNDEFINED_DATA_NAME;
             }
-            skip_spaces(&index, temp_line);/*index is pointing after the .entry or .extern*/
-            strcpy(args, &temp_line[index]);
-            if (d_t == d_entry) {
-                ld->dir->d_type = d_entry;
-                set_entry_labels(ld, args);/*put the args in string arr */
-                if (ld->dir->d_content->en_arr->entry == NULL)
-                    ld->ei = NO_CONTENT_DIRECTION;
-            } else {
-                ld->dir->d_type = d_extern;
-                set_extern_labels(ld, args);/*put the args in string arr */
-                if (ld->dir->d_content->ex_arr->extern_ == NULL)
-                    ld->ei = NO_CONTENT_DIRECTION;
+
+        } else if (which_instruction(word) != invalid) {/*it's an instruction line*/
+            ld->is_instruction = true;
+            opcode code = which_instruction(word);
+            ld->inst = malloc(sizeof(instruction));
+            ld->inst->op_args_type = malloc(sizeof(op_args_mthd));
+            ld->inst->op_args_type->code = code;
+
+            inst_args_parser(temp_line, code, &index,ld);
+            /*line keeper update*/
+            int keeper_count = 1;/*at least 1 for the code*/
+            address_type s_type = ld->inst->op_args_type->src[0];
+            address_type d_type = ld->inst->op_args_type->dest[0];
+
+            if (s_type == none && d_type == none){
+                ld->inst->inst_line_keeper = keeper_count;
+                return ld;
+            }
+            else if((s_type == reg && d_type == reg) || (s_type == none) || d_type == none){/*only one more line needed*/
+                keeper_count++;
+                ld->inst->inst_line_keeper = keeper_count;
+                return ld;
+            } else{
+                keeper_count += 2;/*two more lines needed*/
+                ld->inst->inst_line_keeper = keeper_count;
+                return ld;
             }
         }
-        else{/*Invalid data type*/
-            ld->ei = UNDEFINED_DATA_NAME;
-        }
-    }
-    else if (which_instruction(word) != invalid){/*it's an instruction line*/
-        ld->is_instruction = true;
-        opcode code = which_instruction(word);
-        ld->inst = malloc(sizeof (instruction));
-        ld->inst->op_args_type = malloc(sizeof (op_args_mthd));
-        ld->inst->op_args_type->code = code;
 
-        inst_args_parser(temp_line, code, &index, ld);/*check commas, count arguments, check if the address method is valid .do all the ld struct updates*/
-
-        /*line keeper update*/
-        int keeper_count = 1;/*at least 1 for the code*/
-        address_type s_type = ld->inst->op_args_type->src[0];
-        address_type d_type = ld->inst->op_args_type->dest[0];
-
-        if ((s_type == reg && d_type == reg) || (s_type == none) || d_type == none) {/*only one more line needed*/
-            keeper_count++;
-            ld->inst->inst_line_keeper = keeper_count;
+        else { /*not valid first word - get error*/
+        ld->ei = INVALID_FIRST_WORD;
         }
-        if (s_type == none && d_type == none){
-            ld->inst->inst_line_keeper = keeper_count;
-        }
-        else{
-            keeper_count += 2;/*two more lines needed*/
-            ld->inst->inst_line_keeper = keeper_count;
-        }
-    }
-    else /*not valid first word - get error*/
-    ld->ei = INVALID_FIRST_WORD;
-   return ld;/*if returns invalid ld, inst or dir not valid, need to have a flag about it*/
+    return ld;
 }
+
 
 bool is_label_def (char* word){
 
@@ -150,7 +155,6 @@ bool is_label_def (char* word){
     if(strcmp(&word[length-1],":") != 0 )
         return false;
     word[length-1] = '\0';/*replace ':' with null terminator*/
-
     return  true;
 }
 
@@ -243,7 +247,7 @@ bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*
     if(!(set_op_args(inst_line,ld))){
         return false;
     }
-    if(!(is_args_as_expected(ld->inst->op_args_type))){/*the args address method is invalid -inc debug returned false expected true*/
+    if(!(is_args_as_expected(ld->inst->op_args_type))){/*-inc debug returned false expected true*/
         ld->ei = INVALID_ARGS_ADD_METHOD;
         return false;
     }
@@ -281,13 +285,13 @@ bool set_op_args(char* data_args, line_data* ld) {
         ld->inst->op_args_type->dest[0] = none;
         return true;
     }
-    else if (!(is_inst_arg_valid(first_arg))) {
-        ld->ei = INVALID_INST_ARGS;
+    else if (!(is_inst_arg_valid(first_arg, ld))) {
+       /* ld->ei = INVALID_INST_ARGS;*/
         return false;
     }
     if (second_arg != NULL) {
-        if (!(is_inst_arg_valid(second_arg))) {
-            ld->ei = INVALID_INST_ARGS;
+        if (!(is_inst_arg_valid(second_arg, ld))) {
+            /*ld->ei = INVALID_INST_ARGS;*/
             return false;
         }
         set_src_add(first_arg, ld);
@@ -300,9 +304,9 @@ bool set_op_args(char* data_args, line_data* ld) {
     }
     return true;
 }
-    bool is_inst_arg_valid(char *argument) {
+    bool is_inst_arg_valid(char *argument, line_data *ld) {
 
-        if (is_register(argument) || is_label(argument) || is_immediate(argument))
+        if (is_register(argument, ld) || is_label(argument, ld) || is_immediate(argument, ld))
             return true;
         else
             return false;
@@ -310,26 +314,29 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     void set_src_add(char *arg, line_data *ld) {
 
-        if (is_immediate(arg)) {
+        if (is_immediate(arg, ld)) {
             ld->inst->op_args_type->src[0] = immediate;
-        } else if (is_label(arg)) {
+            ld->inst->src_name = arg;
+        } else if (is_label(arg, ld)) {
             ld->inst->op_args_type->src[0] = label;
-        } else if (is_register(arg)) {
+        } else if (is_register(arg, ld)) {
             ld->inst->op_args_type->src[0] = reg;
         }
+        ld->inst->src_name = arg;
     }
     void set_dest_add(char *args, line_data *ld) {
 
-        if (is_immediate(args)) {
+        if (is_immediate(args, ld)) {
             ld->inst->op_args_type->dest[0] = immediate;
-        } else if (is_label(args)) {
+        } else if (is_label(args, ld)) {
             ld->inst->op_args_type->dest[0] = label;
-        } else if (is_register(args)) {
+        } else if (is_register(args, ld)) {
             ld->inst->op_args_type->dest[0] = reg;
         }
+        ld->inst->dest_name = args;
     }
 
-    bool is_register(char *arg) {
+    bool is_register(char *arg, line_data* ld) {
         int i;
         char *registers[REGISTERS_NUM] = {"@r0", "@r1", "@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
         for (i = 0; i < REGISTERS_NUM; i++) {
@@ -339,24 +346,27 @@ bool set_op_args(char* data_args, line_data* ld) {
         return false;
     }
 
-    bool is_label(char *arg) {
+    bool is_label(char *arg, line_data* ld) {
         int length = strlen(arg), i = 0;
         if (length > MAX_LABEL_SIZE) {
-            /*printf("word is too long for label");*/
+            /*ld->ei = LONG_LABEL;*/
             return false;
         }
-        if (!(isalpha(arg[0]))) {/*the first character of a label must be a-z or A-Z*/
+        if (!(isalpha(arg[0]))) {
+            /*ld->ei = LABEL_FIRST_CHAR;*/
+            /*the first character of a label must be a-z or A-Z*/
             return false;
         }
         while (i < length) {/*the rest of the label must be numbers or letters*/
             if (!(isalpha(arg[i])) && !(isdigit(arg[i])))
+             /*   ld->ei = INVALID_LABEL_NAME;*/
                 return false;
             i++;
         }
         return true;
     }
 
-    bool is_immediate(char *arg) {
+    bool is_immediate(char *arg, line_data* ld) {
         if (arg == NULL || arg[0] == '\0') {
             return false;
         }
@@ -370,6 +380,13 @@ bool set_op_args(char* data_args, line_data* ld) {
             }
             i++;
         }
+        int j = 0;
+        int num = string_to_sign_int(arg, &j);
+        if(!(num <= 511 && num >= -512)){
+            ld->ei = IMMEDIATE_RANGE;
+            return false;
+        }
+
         return true;
     }
 
@@ -429,6 +446,12 @@ bool set_op_args(char* data_args, line_data* ld) {
                     return false;
             }
         }
+        i = 0;
+        int data_num =string_to_sign_int(ld, &i);
+        if (!(data_num >= -2048 && data_num <= 2047)){
+            ld->ei = DATA_RANGE;
+            return false;
+        }
             return true;/*the arguments are all  sign integers or commas*/
     }
 
@@ -452,19 +475,21 @@ bool set_op_args(char* data_args, line_data* ld) {
             if (j >= data_size) /*reallocate memory*/
                 resize_int_arr(&d_args, &data_size);/*maybe need to update data size?*/
         }
-        
         ld->dir->d_content->d_arr = (data_arr*)safe_malloc(j * sizeof(data_arr));
         ld->dir->d_content->d_arr->data_arr = (int*)safe_malloc(j * sizeof(int));
         ld->dir->d_content->d_arr->data_arr = 0;
 
         ld->dir->d_content->d_arr->data_arr = d_args;
-        ld->dir->d_content->d_arr->data_arr_size = j;
-        ld->dir->dir_line_keeper = j;
-        /*print for debugging*/
+        if(j == 1 && ld->dir->d_content->d_arr->data_arr[0] == 0 ) {/*if there is not data after .data*/
+            ld->dir->d_content->d_arr->data_arr_size = 0;
+        }
+        else
+            ld->dir->d_content->d_arr->data_arr_size = j;
+        /*print for debugging
         int k;
         for ( k = 0; k < j; ++k) {
             printf("%d\n", ld->dir->d_content->d_arr->data_arr[k]);
-        }
+        }*/
         return;
     }
 
@@ -478,17 +503,22 @@ bool set_op_args(char* data_args, line_data* ld) {
                 switch (i) {
                     case 0:
                         dt = d_string;
+                        i = DIRECTION_NUM;
                         break;
                     case 1:
                         dt = d_data;
+                        i = DIRECTION_NUM;
                         break;
                     case 2:
                         dt = d_entry;
+                        i = DIRECTION_NUM;
                         break;
                     case 3:
                         dt = d_extern;
+                        i = DIRECTION_NUM;
                         break;
                     default:
+                        i = DIRECTION_NUM;
                         break;
                 }
             }
@@ -575,7 +605,7 @@ bool set_op_args(char* data_args, line_data* ld) {
                 }
             }
             return code_name;
-        }
+    }
     bool is_instruction(char *word) {
             int i;
             for (i = 0; i < INST_SIZE; i++) {
@@ -583,8 +613,8 @@ bool set_op_args(char* data_args, line_data* ld) {
                     return true;
             }
             return false;
-        }
-    void set_entry_labels(line_data* ld, char* args){
+    }
+void set_entry_labels(line_data* ld, char* args){
 
         int count, i, k;
         char* label_name;
@@ -600,11 +630,12 @@ bool set_op_args(char* data_args, line_data* ld) {
 
             if(label_name == NULL)
                 break;
-            if(is_label(label_name)) {
+            if(is_label(label_name, ld)) {
                 entry_label_arr[i] = (char*)safe_malloc(strlen((label_name))+1);
                 strcpy(entry_label_arr[i], label_name);
             } /*else error*/
         }
+        ld->dir->d_content->en_arr = (entry_arr*) safe_malloc(sizeof(entry_arr));
         ld->dir->d_content->en_arr->entry = (char**)safe_malloc(count * sizeof(char*));
 
         for (i = 0; i < count; i++) {
@@ -618,7 +649,7 @@ bool set_op_args(char* data_args, line_data* ld) {
         }
         free(entry_label_arr);
         return;
-    }
+}
  void set_extern_labels(line_data * ld, char* args){
      int count, i, k;
      char* extrn_name;
@@ -634,11 +665,12 @@ bool set_op_args(char* data_args, line_data* ld) {
 
          if(extrn_name == NULL)
              break;
-         if(is_label(extrn_name)) {
+         if(is_label(extrn_name, ld)) {
              e_arr[i] = (char*)safe_malloc(strlen((extrn_name))+1);
              strcpy(e_arr[i], extrn_name);
          } /*else error*/
      }
+     ld->dir->d_content->ex_arr = (extern_arr *) safe_malloc(sizeof(extern_arr ));
      ld->dir->d_content->ex_arr->extern_ = (char**)safe_malloc(count * sizeof(char*));
      for (i = 0; i < count; i++) {
          ld->dir->d_content->ex_arr->extern_[i] = (char*)safe_malloc(strlen(e_arr[i])+1);
@@ -653,15 +685,15 @@ bool set_op_args(char* data_args, line_data* ld) {
      free(e_arr);
      return;
  }
-bool is_commas_valid(char* args, line_data * ld){
+bool is_commas_valid(char* args, line_data * ld) {
 
     size_t length = strlen(args);
     int i = 0;
     bool isValid = false;
     bool hasArgument = false;
     bool previousIsComma = false; /* Track if the previous character was a comma*/
-    skip_spaces(&i,args);
-    if(args[i] == '\0') {/*it's an empty line*/
+    skip_spaces(&i, args);
+    if (args[i] == '\0') {/*it's an empty line*/
         isValid = true;
         return isValid;
     }
@@ -674,25 +706,22 @@ bool is_commas_valid(char* args, line_data * ld){
     for (; i < length; i++) {
         if (args[i] == ',') {
             /* Check if there are consecutive commas or a comma at the end*/
-            if(previousIsComma){
+            if (previousIsComma) {
                 isValid = false;
                 ld->ei = MULT_COMMAS;
                 break;
-            }
-            else if (!hasArgument)  {
+            } else if (!hasArgument) {
                 ld->ei = ILLEGAL_COMMA;
                 isValid = false;
                 break;
             }
             previousIsComma = 1;
-        }
-        else if (!isspace(args[i])) {
-            if(hasArgument == true && isspace(args[i-1]) && previousIsComma == false){
+        } else if (!isspace(args[i])) {
+            if (hasArgument == true && isspace(args[i - 1]) && previousIsComma == false) {
                 ld->ei = MISSING_COMMA;
                 isValid = false;
                 break;
-            }
-            else{
+            } else {
                 hasArgument = true;
                 isValid = true; /* Mark as valid when encountering the first non-space character*/
                 previousIsComma = false;
@@ -701,4 +730,3 @@ bool is_commas_valid(char* args, line_data * ld){
     }
     return isValid;
 }
-

@@ -24,7 +24,6 @@ inc r2
 mov A, r1
 rts
 .extern LINE
-
 mcrolik
 macro4
 prn #-5
@@ -53,4 +52,4 @@ macro4
 bne SHALOM(r2, STR)
 inc STR
 
-; end of file 
+
