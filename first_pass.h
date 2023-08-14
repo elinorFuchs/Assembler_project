@@ -32,7 +32,7 @@ typedef struct label_object{
 bool create_symbol_table (line_data* ld_arr[], int arr_size, label_object* symbol_table[], int* ic, int* dc);
 
 bool search_label(char* label_name, label_object* symbol_table[], int s_table_size);
-bool first_pass (FILE* am, label_object* symbol_table, line_data** ld_arr, int* ic, int* dc);
+bool first_pass (FILE* am, label_object* symbol_table[], line_data* ld_arr[], int* ic, int* dc);
 void add_to_symbol_table(label_object *label, label_object* symbol_table[], int s_table_size);
 void resize_ld_arr(line_data** arr, int* size);
 

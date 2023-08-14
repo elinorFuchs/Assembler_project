@@ -24,14 +24,13 @@ char* errors[] = {"", "Error: Invalid first word.\n","Error: Invalid data name.\
                   "Error: Invalid label name (characters should be digits or alphabets.\n",
                   "Error: Immediate number range should be -512 to 511.\n"
 };
-bool first_pass (FILE* am, label_object* symbol_table, line_data* ld_arr[], int* ic, int* dc) {/*add later the symbol table and ld arr and ld as pointer argument so second pass can use them too*/
+bool first_pass (FILE* am, label_object* symbol_table[], line_data* ld_arr[], int* ic, int* dc) {/*add later the symbol table and ld arr and ld as pointer argument so second pass can use them too*/
     char line[MAX_LINE_SIZE];
     int i = 0;
     int line_num = 1;
     line_data* ld;
     int ld_arr_size = INITIAL_SIZE;
 
-     /**ld_arr = (line_data*)safe_malloc(ld_arr_size * sizeof(line_data*));*/
     ld_arr = (line_data**)safe_malloc(ld_arr_size * sizeof(line_data*));
 
 
@@ -56,8 +55,9 @@ bool first_pass (FILE* am, label_object* symbol_table, line_data* ld_arr[], int*
     }*/
     create_symbol_table (ld_arr,ld_arr_size, symbol_table, ic, dc);/*creating the symbol table of the file*/
     int k;
-    for (k = 0; k < 500; ++k) {
-        printf("%s", symbol_table[k].label_name);
+    printf("label name in symbol table is: \n");
+    for (k = 0; k < 24; ++k) {
+        printf( "%s\n", symbol_table[k]->label_name);
 
     }
     return true;
@@ -67,18 +67,19 @@ bool create_symbol_table (line_data* ld_arr[], int arr_size, label_object* symbo
     /*loop through ld array:*/
     int i;
     label_object* new_label = NULL;
+    int s_table_size = 0;
+        for (i = 0; i < 24; i++) {
 
-        for (i = 0; i < arr_size; i++) {
-            int s_table_size = 0;
             new_label = (label_object*) safe_malloc(sizeof (label_object));
+
             *new_label = (label_object){0};
-            printf("Debug: Processing ld_arr[%d]\n", i);
+            printf("Debug: at ld_arr[%d]\n", i);
             if(ld_arr[i]->ei != SUCCESS){
                 continue;
             }
             else if (ld_arr[i]->is_label_def) {
                 /*there is a label definition in the line*/
-                printf(" label name in table arr [i] is: %s , i = %d, ic = %d, dc = %d\n", ld_arr[i]->label_name , i, *ic, *dc);
+                printf(" Debug: label name in table arr [%d] is: %s , ic = %d, dc = %d\n", i, ld_arr[i]->label_name , *ic, *dc);
 
                 /*if (search_label((ld_arr[i]->label_name), symbol_table,s_table_size)) {check if the label not already in the lable table*/
                 /*label isn't already exist - definition is valid. add to table*/
@@ -107,7 +108,7 @@ bool create_symbol_table (line_data* ld_arr[], int arr_size, label_object* symbo
             if(ld_arr[i]->is_direction) {
                 if (ld_arr[i]->dir->d_type == d_extern) {
                     int j, ex_arr_size = ld_arr[i]->dir->d_content->ex_arr->ex_size;
-                    printf("Debug: Processing external labels for ld_arr[%d]\n", i);
+                    printf("Debug: external labels for ld_arr[%d]\n", i);
                     for (j = 0; j < ex_arr_size; ++j) {
                         label_object* new_label = (label_object*)safe_malloc(sizeof(label_object));
                         new_label->type = external;
@@ -123,18 +124,16 @@ bool create_symbol_table (line_data* ld_arr[], int arr_size, label_object* symbo
             if(ld_arr[i]->is_instruction)
                 *ic += ld_arr[i]->inst->inst_line_keeper;
         }
-            free(new_label);
     }
-
-
+    free(new_label);
 return true;
     }
 
 
 void add_to_symbol_table(label_object *label, label_object* symbol_table[], int size) {
-
     symbol_table[size] = label;
 }
+
 
 bool search_label(char* label_name, label_object* symbol_table[], int s_table_size){
     int i;
