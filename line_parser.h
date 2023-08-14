@@ -132,8 +132,7 @@ typedef struct line_data{
     bool is_label_def;
     bool is_instruction;
     bool is_direction;
-    bool is_comment;
-    bool is_empty_line;
+
 
 }line_data;
 

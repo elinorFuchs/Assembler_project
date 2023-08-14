@@ -29,10 +29,11 @@ typedef struct label_object{
 
 
 /*functions declaration*/
-bool search_label(char* label_name, label_object* symbol_table);
-bool first_pass (FILE* am, label_object* symbol_table, line_data* ld_arr, int* ic, int* dc);
-void add_to_symbol_table (label_object* label, label_object* symbol_table);
-bool create_symbol_table (line_data* ld_arr, int arr_size, label_object* symbol_table, int* ic, int* dc);
+bool create_symbol_table (line_data* ld_arr[], int arr_size, label_object* symbol_table[], int* ic, int* dc);
+
+bool search_label(char* label_name, label_object* symbol_table[], int s_table_size);
+bool first_pass (FILE* am, label_object* symbol_table, line_data** ld_arr, int* ic, int* dc);
+void add_to_symbol_table(label_object *label, label_object* symbol_table[], int s_table_size);
 void resize_ld_arr(line_data** arr, int* size);
 
 #endif /*ASSEMBLER_OPENU_PROJECT_FIRST_PASS_H*/

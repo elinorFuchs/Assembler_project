@@ -26,7 +26,7 @@ op_args_mthd op_args_arr [16] = {
         {stop,none,none,none,none,none,none},
         {rts,none,none,none,none,none,none}
         };
-
+/*add comment if empty line or comment line am file already deleted it.*/
 
 line_data* create_line_data(char *line) {
 
@@ -40,14 +40,6 @@ line_data* create_line_data(char *line) {
     word = copy_word (temp_line,&index);
     ld->ei = SUCCESS;
 
-    if(*word == "" || *word == NULL){/*it's an empty line*/
-        ld->is_empty_line = true;
-        return ld;
-    }
-    if(word[0] == ';'){/*it's a comment line - skip this line*/
-        ld->is_comment = true;
-        return ld;
-    }
     /*check if it's a label*/
     if (is_label_def(word)) {
         if(is_instruction(word)){/*label name can't be the same as opcode*/
@@ -346,7 +338,7 @@ bool set_op_args(char* data_args, line_data* ld) {
         return false;
     }
 
-    bool is_label(char *arg, line_data* ld) {
+    bool is_label(char *arg, line_data* ld) {/*add check if it's a saved word*/
         int length = strlen(arg), i = 0;
         if (length > MAX_LABEL_SIZE) {
             /*ld->ei = LONG_LABEL;*/
