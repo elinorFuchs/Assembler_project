@@ -1,7 +1,5 @@
 /*Created by elifu on 02/08/2023.*/
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "assembler.h"
 
 int main(int argc, char* argv[]){
