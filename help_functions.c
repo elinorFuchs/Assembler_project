@@ -82,7 +82,7 @@ void* safe_calloc(size_t num_elements, size_t element_size) {
 }
 
 void* safe_malloc(size_t size) {
-    void* ptr = safe_malloc(size);
+    void* ptr = malloc(size);
     if (ptr == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
