@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "assembler.h"
-#include "help_functions.h"
 
 int main(int argc, char* argv[]){
 
