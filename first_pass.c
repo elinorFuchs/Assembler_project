@@ -44,7 +44,7 @@ bool first_pass (FILE* am, label_object* symbol_table[], line_data* ld_arr[], in
             printf("%s\n", errors[ld->ei]);
         }
         line_num++;
-        /*if (i >= ld_arr_size) //reallocate memory
+        /*if (i >= ld_arr_size) /*reallocate memory
             resize_ld_arr(ld_arr, &ld_arr_size);*/
         i++;
     }/*IF NEEDED ADD A RESIZING OG LD ARR TO THE CORRECT SIZE*/
@@ -153,9 +153,9 @@ bool search_label(char* label_name, label_object* symbol_table[], int s_table_si
     return false;/*the label doesn't exist in the symbol table*/
 }
 
-void resize_ld_arr(line_data ** arr, int* size) {
-    *size *= 2;
-    line_data* temp_arr = (line_data *)realloc(*arr, (*size) * sizeof(line_data));
+void resize_ld_arr(line_data*** arr, int* size) {
+    *size += INITIAL_SIZE;
+    line_data** temp_arr = (line_data**)realloc(*arr, (*size) * sizeof(line_data*));
     if (temp_arr == NULL) {
         printf("Memory reallocation failed.\n");
         free(*arr);
