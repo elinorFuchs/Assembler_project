@@ -3,6 +3,7 @@
 #ifndef PRE_ASSEMBLER_H
 #define PRE_ASSEMBLER_H
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef enum {false, true} bool;
 
