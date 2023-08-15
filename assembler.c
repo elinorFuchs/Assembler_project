@@ -1,8 +1,6 @@
 /*Created by elifu on 02/08/2023.*/
 
 #include "assembler.h"
-
-int main(int argc, char* argv[]){
 #include "line_parser.h"
 #include "first_pass.h"
 #include "help_functions.h"
@@ -43,5 +41,4 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
     return 0;
 
 }
-
 
