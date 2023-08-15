@@ -72,7 +72,14 @@ int string_to_sign_int(char* data_line, int* index) {
 }
 
 
-
+void* safe_calloc(size_t num_elements, size_t element_size) {
+    void* ptr = calloc(num_elements , element_size);
+    if (ptr == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(1);
+    }
+    return ptr;
+}
 
 void* safe_malloc(size_t size) {
     void* ptr = safe_malloc(size);
