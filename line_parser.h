@@ -143,7 +143,7 @@ line_data* create_line_data(char *line);
 bool is_direction (char* word, line_data* ld);
 bool is_args_as_expected(op_args_mthd* op_args_to_validate);
 bool is_valid_string(char *string_line, line_data *ld);
-bool is_label_def (char* word);
+bool is_label_def(char *word, line_data *ld);
 bool is_instruction(char* word);
 direction_type which_data_type(char* word);
 opcode which_instruction(char* word);

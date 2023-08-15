@@ -14,7 +14,7 @@ char* copy_word(const char* line, int* index) {
         length++;
         length_index++;
     }
-    char* word = (char*)malloc((length + 1) * sizeof(char));
+    char* word = (char*)safe_malloc((length + 1) * sizeof(char));
     if (word == NULL) {
         return NULL;
     }
@@ -75,7 +75,7 @@ int string_to_sign_int(char* data_line, int* index) {
 
 
 void* safe_malloc(size_t size) {
-    void* ptr = malloc(size);
+    void* ptr = safe_malloc(size);
     if (ptr == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);

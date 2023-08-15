@@ -30,7 +30,7 @@ op_args_mthd op_args_arr [16] = {
 
 line_data* create_line_data(char *line) {
 
-    line_data* ld = malloc(sizeof(line_data));
+    line_data* ld = safe_malloc(sizeof(line_data));
     *ld = (line_data){0};
     int index =0;
     char* word;
@@ -41,11 +41,7 @@ line_data* create_line_data(char *line) {
     ld->ei = SUCCESS;
 
     /*check if it's a label*/
-    if (is_label_def(word)) {
-        if(is_instruction(word)){/*label name can't be the same as opcode*/
-            ld->ei = OPCODE_LABEL_NAME;
-            return ld;
-        }
+    if (is_label_def(word, ld)) {
         ld->is_label_def = true;
         strcpy(ld->label_name, word) ;
         word = copy_word (temp_line, &index);/*we continue check the next word after the label definition*/
@@ -97,8 +93,8 @@ line_data* create_line_data(char *line) {
         } else if (which_instruction(word) != invalid) {/*it's an instruction line*/
             ld->is_instruction = true;
             opcode code = which_instruction(word);
-            ld->inst = malloc(sizeof(instruction));
-            ld->inst->op_args_type = malloc(sizeof(op_args_mthd));
+            ld->inst = safe_malloc(sizeof(instruction));
+            ld->inst->op_args_type = safe_malloc(sizeof(op_args_mthd));
             ld->inst->op_args_type->code = code;
 
             inst_args_parser(temp_line, code, &index,ld);
@@ -129,14 +125,15 @@ line_data* create_line_data(char *line) {
 }
 
 
-bool is_label_def (char* word){
+bool is_label_def(char *word, line_data *ld) {
 
     int length = strlen(word),i = 0;
     if (length > MAX_LABEL_SIZE){
         printf("Error: first word is too long for label definition / direction or instruction.\n");
         return false;
     }
-    if (!(isalpha(word[0]))){/*the first character of a label must be a-z or A-Z*/
+    if (!(isalpha(word[0]))){/*the first character of a label must be a-z or A-Z.
+    *that's covers cases of saved word as registers or directions which begin with '.'*/
         return false;
     }
     while (i < length - 1){/*the rest of the label must be numbers or letters, and the last character is ':'*/
@@ -146,6 +143,10 @@ bool is_label_def (char* word){
     }
     if(strcmp(&word[length-1],":") != 0 )
         return false;
+    if(is_instruction(word)) {/*label can't be saved word as opcode*/
+        ld->ei = OPCODE_LABEL_NAME;
+        return false;
+    }
     word[length-1] = '\0';/*replace ':' with null terminator*/
     return  true;
 }
@@ -214,7 +215,7 @@ char *copy_s_args(char *line) {
         }
     }
     int length = end - start;
-    char* s_content = (char*)malloc((length + 1) * sizeof(char));
+    char* s_content = (char*)safe_malloc((length + 1) * sizeof(char));
     if (s_content == NULL) {
         return NULL;
     }
@@ -225,7 +226,8 @@ char *copy_s_args(char *line) {
 
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*check commas, count arguments, check if the address method is valid, ld updates*/
 {
-    char* inst_line = malloc(sizeof(char));
+    char* inst_line = safe_malloc(sizeof(char ));
+
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
 
     if(!(is_commas_valid(inst_line,ld))){/*there is invalid comma*/
@@ -340,6 +342,11 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     bool is_label(char *arg, line_data* ld) {/*add check if it's a saved word*/
         int length = strlen(arg), i = 0;
+
+        if (is_instruction(arg)) {/*opcode is saved word and can't be a label*/
+            return false;
+            ld->ei = OPCODE_LABEL_NAME;
+        }
         if (length > MAX_LABEL_SIZE) {
             /*ld->ei = LONG_LABEL;*/
             return false;
@@ -392,7 +399,7 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     bool data_parser(char *temp_line, line_data *ld, int *index) {
 
-        char *data_line = malloc(sizeof(char));
+        char *data_line = safe_malloc(sizeof(char));
 
         strcpy(data_line, &temp_line[*index]);/*index is pointing to after .data*/
         if (!is_valid_data(data_line,ld)) {/*include error message if not, skip spaces in beginning,check commas*/
@@ -439,7 +446,7 @@ bool set_op_args(char* data_args, line_data* ld) {
             }
         }
         i = 0;
-        int data_num =string_to_sign_int(ld, &i);
+        int data_num =string_to_sign_int(data_line, &i);
         if (!(data_num >= -2048 && data_num <= 2047)){
             ld->ei = DATA_RANGE;
             return false;
@@ -660,7 +667,8 @@ void set_entry_labels(line_data* ld, char* args){
          if(is_label(extrn_name, ld)) {
              e_arr[i] = (char*)safe_malloc(strlen((extrn_name))+1);
              strcpy(e_arr[i], extrn_name);
-         } /*else error*/
+         } else
+             return;
      }
      ld->dir->d_content->ex_arr = (extern_arr *) safe_malloc(sizeof(extern_arr ));
      ld->dir->d_content->ex_arr->extern_ = (char**)safe_malloc(count * sizeof(char*));
