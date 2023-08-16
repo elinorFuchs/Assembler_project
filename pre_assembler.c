@@ -290,7 +290,7 @@ char* line_template(char* line) {
             extra_spaces_counter++;
             if(extra_spaces_counter == max_extra) {
                 max_extra *= 2;
-                realloc(template_line , sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
+                template_line = realloc(template_line , sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
             }
 	        template_index++;
             template_line[template_index] = line[index];
