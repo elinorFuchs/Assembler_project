@@ -398,7 +398,7 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     bool data_parser(char *temp_line, line_data *ld, int *index) {
 
-        char *data_line = safe_malloc(sizeof(char));
+        char *data_line = safe_malloc(sizeof(char) * MAX_LINE_SIZE);
 
         strcpy(data_line, &temp_line[*index]);/*index is pointing to after .data*/
         if (!is_valid_data(data_line,ld)) {/*include error message if not, skip spaces in beginning,check commas*/
