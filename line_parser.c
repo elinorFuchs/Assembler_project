@@ -225,7 +225,7 @@ char *copy_s_args(char *line) {
 
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*check commas, count arguments, check if the address method is valid, ld updates*/
 {
-    char* inst_line = safe_malloc(sizeof(char ));
+    char* inst_line = safe_malloc(sizeof(char) * MAX_LINE_SIZE);
 
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
 
