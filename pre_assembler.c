@@ -265,11 +265,11 @@ void clean_white(char* line , int* index) {
 }
   
 char* line_template(char* line) {
-    int index , template_index;
+    int index , template_index, extra_spaces_counter , max_extra;
     char *template_line , temp;
 
-    template_line = malloc(sizeof(char) * (strlen(line) + 3));
-    index = 0 , template_index = 0;
+    index = 0 , template_index = 0 , extra_spaces_counter = 0 , max_extra = 2;
+    template_line = malloc(sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
     
     while(line[index] != '\n' && line[index] != '\0') {
         if(line[index] == ' ' || line[index] == '\t'){
@@ -285,11 +285,16 @@ char* line_template(char* line) {
             template_line[template_index - 1] = line[index];
             template_line[template_index] = temp;
         }   
-        else if(template_index > 0 && template_line[template_index - 1] == ',' && line[index] != ' ') {
+        else if(template_index > 0 && template_line[template_index - 1] == ',') {
             template_line[template_index] = ' ';
-            template_line[template_index + 1] = line[index];
-            clean_white(line , &index);
-            template_index++; 
+            extra_spaces_counter++;
+            if(extra_spaces_counter == max_extra) {
+                max_extra *= 2;
+                realloc(template_line , sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
+            }
+	        template_index++;
+            template_line[template_index] = line[index];
+            clean_white(line , &index);  
         }
         else template_line[template_index] = line[index];
         index++; 
