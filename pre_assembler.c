@@ -284,7 +284,8 @@ char* line_template(char* line) {
             clean_white(line , &index);
             index--;
         }
-        else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' '){
+        else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' ' \ 
+		 && strstr(line , ".string") == NULL){
             temp = template_line[template_index - 1];
             template_line[template_index - 1] = line[index];
             template_line[template_index] = temp;
