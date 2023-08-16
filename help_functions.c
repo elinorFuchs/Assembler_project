@@ -5,6 +5,16 @@
 char* inst_Arr[16] = {"mov","cmp","add","sub","not","clr","lea","inc",
                       "dec","jmp","bne","red","prn","jsr","rts","stop"};
 
+FILE* safe_fopen (const char *filename, const char *mode, char* suffix){
+    char* new_file_name = safe_malloc(sizeof (char) * (strlen(filename) + strlen(suffix) + 1));
+    FILE* fptr;
+    strcpy(new_file_name,filename);
+    strcat(new_file_name, suffix);
+    fptr = fopen(new_file_name,mode);
+    if (fptr == NULL)
+        perror("error");
+    return fptr;
+}
 char* copy_word(const char* line, int* index) {
 
     skip_spaces(index, line);

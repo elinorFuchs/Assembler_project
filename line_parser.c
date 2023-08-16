@@ -5,10 +5,10 @@
 
 
 
-/*char* rgstrs[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};*/
+char* registers[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
 
 op_args_mthd op_args_arr [16] = {
-        {lea,label,none,none,label,reg,none},
+        {lea,{label,none,none},{label,reg,none}},
         {sub, immediate, label,reg,label,reg,none},
         {add,immediate, label,reg,label,reg,none},
         {cmp,immediate, label,reg,label,reg,none},
@@ -225,7 +225,7 @@ char *copy_s_args(char *line) {
 
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*check commas, count arguments, check if the address method is valid, ld updates*/
 {
-    char* inst_line = safe_malloc(sizeof(char ));
+    char* inst_line = safe_malloc(MAX_LINE_SIZE * sizeof(char));
 
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
 
@@ -331,7 +331,6 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     bool is_register(char *arg, line_data* ld) {
         int i;
-        char *registers[REGISTERS_NUM] = {"@r0", "@r1", "@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
         for (i = 0; i < REGISTERS_NUM; i++) {
             if (strcmp(arg, registers[i]) == 0)
                 return true;

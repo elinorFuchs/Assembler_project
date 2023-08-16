@@ -52,11 +52,11 @@ typedef enum address_type{
     none = 0
 }address_type;
 
-typedef struct op_args_mthd{
+typedef struct{
     opcode code;
     address_type src[VALID_ADDRSS_MTHDS];
     address_type dest[VALID_ADDRSS_MTHDS];
-} op_args_mthd;
+}op_args_mthd;
 
 extern op_args_mthd op_args_arr [16];
 
@@ -71,7 +71,6 @@ typedef struct instruction {
     char* src_name;
     char* dest_name;
     int inst_line_keeper;
-
 }instruction;
 
 /*DIRECTIONS Line Data Structures:*/
