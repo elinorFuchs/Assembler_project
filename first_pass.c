@@ -47,25 +47,24 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i;
 
-    create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic, dc);/*creating the symbol table of the file*/
-    int k;
-    printf("label name in symbol table is: \n");
-    for (k = 0; k < *st_size; ++k) {
-        printf("%s\n", (*symbol_table)[k]->label_name);
+    if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic,dc)) {/*creating the symbol table of the file*/
+        int k;
+        printf("label name in symbol table is: \n");
+        for (k = 0; k < *st_size; ++k) {
+            printf("%s\n", (*symbol_table)[k]->label_name);
 
-    }
-    return true;
+        }
+        return true;
+    } else
+        return false;
 }
 
-bool
-create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity,
-                    int *ic, int *dc) {
-    /*loop through ld array:*/
+bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity, int *ic, int *dc) {
+
     int i;
     label_object* new_label = NULL;
 
         for (i = 0; i < ld_arr_size; i++) {
-
             printf("Debug: at ld_arr[%d]\n", i);
             if(ld_arr[i]->ei != SUCCESS){
                 continue;
@@ -74,27 +73,31 @@ create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_
                 /*there is a label definition in the line*/
                 printf(" Debug: label name in table arr [%d] is: %s , ic = %d, dc = %d\n", i, ld_arr[i]->label_name,
                        *ic, *dc);
-                label_object* new_label = (label_object*)safe_malloc(sizeof(label_object));
+                label_object *new_label = (label_object *) safe_malloc(sizeof(label_object));
 
 
-                /*if (search_label((ld_arr[i]->label_name), symbol_table,s_table_size)) {check if the label not already in the lable table*/
-                /*label isn't already exist - definition is valid. add to table*/
-                if (ld_arr[i]->is_instruction) {
-                    strcpy(new_label->label_name, ld_arr[i]->label_name);
-                    new_label->is_code = true;
-                    new_label->type = relocatable;
-                    new_label->label_value = *ic;
-                    *ic += ld_arr[i]->inst->inst_line_keeper;
-                    add_to_symbol_table(new_label, symbol_table, st_size, capacity);
+                if (!(search_label((ld_arr[i]->label_name), symbol_table, *st_size))) {
+                    /*label isn't already exist - definition is valid. add to table*/
+                    if (ld_arr[i]->is_instruction) {
+                        strcpy(new_label->label_name, ld_arr[i]->label_name);
+                        new_label->is_code = true;
+                        new_label->type = relocatable;
+                        new_label->label_value = *ic;
+                        *ic += ld_arr[i]->inst->inst_line_keeper;
+                        add_to_symbol_table(new_label, symbol_table, st_size, capacity);
 
-                } else if (ld_arr[i]->is_direction) {/*direction line*/
-                    strcpy(new_label->label_name, ld_arr[i]->label_name);
-                    new_label->is_data = true;
-                    new_label->type = relocatable;
-                    new_label->label_value = *dc;
-                    *dc += ld_arr[i]->dir->dir_line_keeper;
-                    add_to_symbol_table(new_label, symbol_table, st_size, capacity);
+                    } else if (ld_arr[i]->is_direction) {/*direction line*/
+                        strcpy(new_label->label_name, ld_arr[i]->label_name);
+                        new_label->is_data = true;
+                        new_label->type = relocatable;
+                        new_label->label_value = *dc;
+                        *dc += ld_arr[i]->dir->dir_line_keeper;
+                        add_to_symbol_table(new_label, symbol_table, st_size, capacity);
 
+                    }
+                } else/*invalid label definition - already exist in symbol table */{
+                    printf("Error: There is invalid label definition, label already defined in this file");
+                    return false;
                 }
             }
         /*not a label definition*/
