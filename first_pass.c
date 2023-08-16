@@ -44,6 +44,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
             resize_ld_arr(ld_arr, ld_arr_size);
         }
     }
+
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i;
 
@@ -51,8 +52,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
         int k;
         printf("label name in symbol table is: \n");
         for (k = 0; k < *st_size; ++k) {
-            printf("%s\n", (*symbol_table)[k]->label_name);
-
+            printf("%s\n ", (*symbol_table)[k]->label_name);
         }
         return true;
     } else
@@ -75,8 +75,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                        *ic, *dc);
                 label_object *new_label = (label_object *) safe_malloc(sizeof(label_object));
 
-
-                if (!(search_label((ld_arr[i]->label_name), symbol_table, *st_size))) {
+                if (!(search_label((ld_arr[i]->label_name), *symbol_table, *st_size))) {
                     /*label isn't already exist - definition is valid. add to table*/
                     if (ld_arr[i]->is_instruction) {
                         strcpy(new_label->label_name, ld_arr[i]->label_name);

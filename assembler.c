@@ -21,7 +21,6 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
 
     pre_as("test1.as");
     am = fopen("test1.am","r");
-    /*ld_arr = safe_malloc(sizeof (line_data*) *INITIAL_SIZE);*/
 
     symbol_table = safe_calloc(capacity,sizeof (label_object*));
     ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));

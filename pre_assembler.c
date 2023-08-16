@@ -237,7 +237,6 @@ void free_or_close(int method , int count, ...) {
                 fclose(ptr);
         }
     }
-    
     va_end(args);
 }
 
