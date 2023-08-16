@@ -93,7 +93,7 @@ void insert_mcro(mcro_table_p m1 , char *mcro_name_to_check , char *line , int m
 void free_mcro_table(mcro_table_p m1)
 {
     int index;
-    for (index = 0; index < m1->index; index++) {
+    for (index = 0; index < MAX_MACROS_NUM; index++) {
         free_or_close(1 , 2 , m1->mcro_name[index] , m1->line[index]);
     }
     if(m1->mcro_name != NULL)
