@@ -494,32 +494,13 @@ bool set_op_args(char* data_args, line_data* ld) {
     direction_type which_data_type(char *word) {
         direction_type dt = invalid_data;
         int i;
-        char *directions_string[DIRECTION_NUM] = {".string", ".data", ".entry", ".extern"};
+        char* directions_string[DIRECTION_NUM] = {".string", ".data", ".entry", ".extern"};
 
         for (i = 0; i < DIRECTION_NUM; i++) {
-            if (0 == strcmp(directions_string[i], word)) {
-                switch (i) {
-                    case 0:
-                        dt = d_string;
-                        i = DIRECTION_NUM;
-                        break;
-                    case 1:
-                        dt = d_data;
-                        i = DIRECTION_NUM;
-                        break;
-                    case 2:
-                        dt = d_entry;
-                        i = DIRECTION_NUM;
-                        break;
-                    case 3:
-                        dt = d_extern;
-                        i = DIRECTION_NUM;
-                        break;
-                    default:
-                        i = DIRECTION_NUM;
-                        break;
-                }
-            }
+            if (strcmp(directions_string[i], word) == 0) {
+                dt = i;
+                break;
+            }     
         }
         return dt;
     }
