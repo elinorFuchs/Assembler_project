@@ -4,6 +4,7 @@ typedef struct mcro_table {
     char** mcro_name;
     char** line;
     int index;
+    int max_allocated_mcro_lines;
 } mcro_table;
  
 mcro_table_p create_mcro_table()
@@ -15,6 +16,7 @@ mcro_table_p create_mcro_table()
     m1->mcro_name = malloc(sizeof(char*) * MAX_MACROS_NUM);
     m1->line = malloc(sizeof(char*) * MAX_MACROS_NUM);
     m1->index = 0;
+    m1->max_allocated_mcro_lines = START_MCRO_TABLE_LINES_COUNT;
 
     for (i = 0; i < MAX_MACROS_NUM; i ++) {
         m1->mcro_name[i] = malloc(sizeof(char) * MAX_MCRO_NAME);
@@ -40,7 +42,8 @@ bool valid_mcro_name(char* mcro_name)
 }
 
 void mcro_table_line_increase(mcro_table_p m1) {
-    m1->line[m1->index] = realloc(m1->line[m1->index] , sizeof(char) * MAX_LINE_LEN * (m1->index + 1));
+    m1->max_allocated_mcro_lines *= 2;
+    m1->line[m1->index] = realloc(m1->line[m1->index] , sizeof(char) * MAX_LINE_LEN * m1->max_allocated_mcro_lines);
 }
 
 void is_mcro_line(mcro_table_p m1 , char* line , char **inside_mcro) {
@@ -85,7 +88,8 @@ void insert_mcro(mcro_table_p m1 , char *mcro_name_to_check , char *line , int m
         strcpy(m1->mcro_name[m1->index] , mcro_name_to_check);
     }
     else if(method == 2) {
-        mcro_table_line_increase(m1);
+        if(m1->index == m1->max_allocated_mcro_lines)
+            mcro_table_line_increase(m1);
         strcat(m1->line[m1->index] , line);
     }
 }
@@ -285,7 +289,7 @@ char* line_template(char* line) {
             template_line[template_index - 1] = line[index];
             template_line[template_index] = temp;
         }   
-        else if(template_index > 0 && template_line[template_index - 1] == ',') {
+        else if(template_index > 0 && template_line[template_index - 1] == ',' && strstr(line , ".string") == NULL) {
             template_line[template_index] = ' ';
             extra_spaces_counter++;
             if(extra_spaces_counter == max_extra) {
