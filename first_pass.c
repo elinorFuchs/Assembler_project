@@ -47,7 +47,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i;
 
-    create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, st_size, capacity, ic);/*creating the symbol table of the file*/
+    create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic, dc);/*creating the symbol table of the file*/
     int k;
     printf("label name in symbol table is: \n");
     for (k = 0; k < *st_size; ++k) {
