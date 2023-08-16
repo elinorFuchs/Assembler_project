@@ -74,7 +74,8 @@ create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_
                 /*there is a label definition in the line*/
                 printf(" Debug: label name in table arr [%d] is: %s , ic = %d, dc = %d\n", i, ld_arr[i]->label_name,
                        *ic, *dc);
-                new_label = (label_object *) safe_malloc(sizeof(label_object));
+                label_object* new_label = (label_object*)safe_malloc(sizeof(label_object));
+
 
                 /*if (search_label((ld_arr[i]->label_name), symbol_table,s_table_size)) {check if the label not already in the lable table*/
                 /*label isn't already exist - definition is valid. add to table*/
