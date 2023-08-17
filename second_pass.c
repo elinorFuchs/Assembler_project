@@ -8,7 +8,6 @@ typedef struct binary_table {
 
 binary_table_p new_binary_table(int lines_count , int start_address) {
     int i;
-	printf("lines count: %d \n" , lines_count);
     binary_table_p b1;
     b1 = malloc(sizeof(binary_table));
     b1->start_address = start_address;
@@ -33,30 +32,29 @@ void free_binary_table(binary_table_p b1 , int lines_count) {
 
 int second_pass(label_object **symbol_table[], line_data **ld_arr[], int *ic, int *dc , int lines_count)
 {
-    int ld_arr_size , i , j , char_as_ascii , data_count;
-    
-    ld_arr_size = lines_count;
-
+    int i , j , char_as_ascii , data_count;
+printf("binary lines instructions: %d\n" , *ic - MEMORY_START_ADDRESS);
     binary_table_p instruction_binary_table = new_binary_table(*ic - MEMORY_START_ADDRESS , MEMORY_START_ADDRESS);
+printf("binary lines direcctions: %d\n" , *dc);
     binary_table_p direction_binary_table = new_binary_table(*dc , *ic); 
-	printf("ld size: %d\n" , ld_arr_size);
-    for (i = 0; i < ld_arr_size+1; i++)
+    for (i = 0; i < lines_count + 1; i++)
     {
 	printf("number: %d\n" , i + 1);
         if ((*ld_arr)[i]->is_direction)
         {
 	printf("direction type: %d\n" , (*ld_arr)[i]->dir->d_type);
+		
             switch ((*ld_arr)[i]->dir->d_type)
             {
             case d_string:
-		printf(".string time: %d\n" , ld_arr_size);
+		printf(".string time: \n");
                 for (j = 0; j < (*ld_arr)[i]->dir->d_content->string->str_len; j++)
                 {
                     char_as_ascii = (*ld_arr)[i]->dir->d_content->string->string[j];
                     printf("char: %c\n" , (*ld_arr)[i]->dir->d_content->string->string[j]);
                     printf("curr_index direction binary table: %d\n" , *direction_binary_table->curr_index);
-                    intToTwosComplement(char_as_ascii, direction_binary_table->lines_as_binary[*direction_binary_table->curr_index]);
-                    (*direction_binary_table->curr_index)++;
+                    intToTwosComplement(char_as_ascii, direction_binary_table->lines_as_binary[*(direction_binary_table->curr_index)]);
+                    (*direction_binary_table->curr_index)++; 
                 }
                 break;
             case d_data:
@@ -66,7 +64,7 @@ int second_pass(label_object **symbol_table[], line_data **ld_arr[], int *ic, in
                 for (j = 0; j < data_count; j++) {
 			        printf("num: %d\n" , (*ld_arr)[i]->dir->d_content->d_arr->data_arr[j]);
 			        printf("curr_index direction binary table: %d\n" , *direction_binary_table->curr_index);
-                    intToTwosComplement((*ld_arr)[i]->dir->d_content->d_arr->data_arr[j] , direction_binary_table->lines_as_binary[*direction_binary_table->curr_index]);
+                    intToTwosComplement((*ld_arr)[i]->dir->d_content->d_arr->data_arr[j] , direction_binary_table->lines_as_binary[*(direction_binary_table->curr_index)]);
                     (*direction_binary_table->curr_index)++;
                 }
                 break;
@@ -116,7 +114,7 @@ void intToTwosComplement(int num, int* binary_line)
 {
     int i;
     /*afik*/
-    printf("another time:\n");
+    printf("create another binary line:\n");
     int mask = 1 << (BINARY_LENGTH - 1);
 
     /* If the number is negative, calculate its two's complement value for 12 bits */
@@ -124,7 +122,6 @@ void intToTwosComplement(int num, int* binary_line)
     {
         num = (1 << BINARY_LENGTH) + num;
     }
-
     for (i = 0; i < BINARY_LENGTH; i++)
     {
         binary_line[i] = (num & mask) ? 1 : 0;
