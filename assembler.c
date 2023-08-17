@@ -33,8 +33,10 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
      }*/
 
     first_pass (am, &symbol_table,&st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
+    second_pass(&symbol_table , &ld_arr , &ic, &dc , ld_arr_size);
 
-   /* second_pass(&symbol_table , &ld_arr , &ic, &dc);*/
+
+
 
     fclose(am);
 
