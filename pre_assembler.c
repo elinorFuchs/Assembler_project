@@ -4,6 +4,7 @@ typedef struct mcro_table {
     char** mcro_name;
     char** line;
     int index;
+    int max_allocated_mcro_lines;
 } mcro_table;
  
 mcro_table_p create_mcro_table()
@@ -15,6 +16,7 @@ mcro_table_p create_mcro_table()
     m1->mcro_name = malloc(sizeof(char*) * MAX_MACROS_NUM);
     m1->line = malloc(sizeof(char*) * MAX_MACROS_NUM);
     m1->index = 0;
+    m1->max_allocated_mcro_lines = START_MCRO_TABLE_LINES_COUNT;
 
     for (i = 0; i < MAX_MACROS_NUM; i ++) {
         m1->mcro_name[i] = malloc(sizeof(char) * MAX_MCRO_NAME);
@@ -40,7 +42,8 @@ bool valid_mcro_name(char* mcro_name)
 }
 
 void mcro_table_line_increase(mcro_table_p m1) {
-    m1->line[m1->index] = realloc(m1->line[m1->index] , sizeof(char) * MAX_LINE_LEN * (m1->index + 1));
+    m1->max_allocated_mcro_lines *= 2;
+    m1->line[m1->index] = realloc(m1->line[m1->index] , sizeof(char) * MAX_LINE_LEN * m1->max_allocated_mcro_lines);
 }
 
 void is_mcro_line(mcro_table_p m1 , char* line , char **inside_mcro) {
@@ -85,7 +88,8 @@ void insert_mcro(mcro_table_p m1 , char *mcro_name_to_check , char *line , int m
         strcpy(m1->mcro_name[m1->index] , mcro_name_to_check);
     }
     else if(method == 2) {
-        mcro_table_line_increase(m1);
+        if(m1->index == m1->max_allocated_mcro_lines)
+            mcro_table_line_increase(m1);
         strcat(m1->line[m1->index] , line);
     }
 }
@@ -265,11 +269,11 @@ void clean_white(char* line , int* index) {
 }
   
 char* line_template(char* line) {
-    int index , template_index;
+    int index , template_index, extra_spaces_counter , max_extra;
     char *template_line , temp;
 
-    template_line = malloc(sizeof(char) * (strlen(line) + 10));
-    index = 0 , template_index = 0;
+    index = 0 , template_index = 0 , extra_spaces_counter = 0 , max_extra = 2;
+    template_line = malloc(sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
     
     while(line[index] != '\n' && line[index] != '\0') {
         if(line[index] == ' ' || line[index] == '\t'){
@@ -280,16 +284,22 @@ char* line_template(char* line) {
             clean_white(line , &index);
             index--;
         }
-        else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' '){
+        else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' ' \
+		 && strstr(line , ".string") == NULL){
             temp = template_line[template_index - 1];
             template_line[template_index - 1] = line[index];
             template_line[template_index] = temp;
         }   
-        else if(template_index > 0 && template_line[template_index - 1] == ',' && line[index] != ' ') {
+        else if(template_index > 0 && template_line[template_index - 1] == ',' && strstr(line , ".string") == NULL) {
             template_line[template_index] = ' ';
-            template_line[template_index + 1] = line[index];
+            extra_spaces_counter++;
+            if(extra_spaces_counter == max_extra) {
+                max_extra *= 2;
+                template_line = realloc(template_line , sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
+            }
+	        template_index++;
+            template_line[template_index] = line[index];
             clean_white(line , &index);
-            template_index++; 
         }
         else template_line[template_index] = line[index];
         index++; 

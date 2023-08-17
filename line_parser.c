@@ -122,8 +122,6 @@ line_data* create_line_data(char *line) {
 }
 
 
-
-
 bool is_label_def(char *word, line_data *ld) {
 
     int length = strlen(word),i = 0;
@@ -189,6 +187,7 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
 
     if(is_valid_string(string_line, ld)){/*include error message if not, search for quotes*/
         args = copy_s_args(string_line);/*skip spaces in the beginning, find quote, copy till the ending quote:*/
+
         strcpy(ld->dir->d_content->string->string, args);/*put the .string argument in line_data struct*/
         ld->dir->d_content->string->str_len = strlen(args);
         ld->dir->dir_line_keeper = strlen(args)+1;
@@ -335,6 +334,7 @@ bool set_op_args(char* data_args, line_data* ld) {
 
     bool is_register(char *arg, line_data* ld) {
         int i;
+        char *registers[REGISTERS_NUM] = {"@r0", "@r1", "@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
         for (i = 0; i < REGISTERS_NUM; i++) {
             if (strcmp(arg, registers[i]) == 0)
                 return true;

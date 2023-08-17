@@ -15,6 +15,8 @@
 #define DIFF_INSTRUCTION_COUNT 15
 #define MCRO_LEN 4
 #define ENDMCRO_LEN 7
+#define END_LINE_CHARS 2
+#define START_MCRO_TABLE_LINES_COUNT 4
 
 
 typedef struct mcro_table* mcro_table_p;
