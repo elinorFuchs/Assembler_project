@@ -39,7 +39,7 @@ printf("binary lines direcctions: %d\n" , *dc);
 printf("total lines: %d\n" , lines_count + 1);
     binary_table_p direction_binary_table = new_binary_table(*dc , *ic); 
 /* needed to add last line to the loop!!!!! */
-    for (i = 0; i < lines_count ; i++)
+    for (i = 0; i < lines_count + 1 ; i++)
     {
 	printf("number: %d\n" , i + 1);
         if ((*ld_arr)[i]->is_direction)
@@ -74,14 +74,14 @@ printf("total lines: %d\n" , lines_count + 1);
                     printf("Error: direction type\n");
                 else if((*ld_arr)[i]->dir->d_type == d_entry) {
                     for(j = 0 ; j < (*ld_arr)[i]->dir->d_content->en_arr->en_size ; j++) {
-                        if(!search_label((*ld_arr)[i]->dir->d_content->en_arr->entry[j] , *symbol_table , *st_size)) 
-                            printf("Error: label \"%s\" not not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);      
+                        if(search_label((*ld_arr)[i]->dir->d_content->en_arr->entry[j] , *symbol_table , *st_size) == -3) 
+                            printf("Error: label \"%s\" not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);      
                     }  
                 }
                 else {
                     for(j = 0 ; j < (*ld_arr)[i]->dir->d_content->ex_arr->ex_size ; j++) {
-                        if(!search_label((*ld_arr)[i]->dir->d_content->ex_arr->extern_[j] , *symbol_table , *st_size)) 
-                            printf("Error: label \"%s\" not not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);
+                        if(search_label((*ld_arr)[i]->dir->d_content->ex_arr->extern_[j] , *symbol_table , *st_size) == -3) 
+                            printf("Error: label \"%s\" not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);
                     }
                 }
                 break;
@@ -147,9 +147,9 @@ void entries_and_externals_file(label_object **symbol_table[], int* st_size)
 {
     int i;
     char *first = malloc(sizeof(char) * 8); 
-	first = "entries";
+	strcpy(first , "entries");
     char *second = malloc(sizeof(char) * 10);
-	second = "externals";
+    strcpy(second , "externals");
     FILE *ent_fptr , *ext_fptr;
     ent_fptr = fopen( first , "w");
     ext_fptr = fopen( second , "w");
@@ -161,24 +161,93 @@ void entries_and_externals_file(label_object **symbol_table[], int* st_size)
     else {   
         for(i = 0 ; i < *st_size ; i++) {
             if((*symbol_table)[i]->is_entry){
+	printf("Here entry: %s\n" , (*symbol_table)[i]->label_name); 
                 fputs((*symbol_table)[i]->label_name , ent_fptr);
                 fputs(": " , ent_fptr);
-                sprintf(buffer , "%d", (*symbol_table)[i]->label_value);
+                sprintf(buffer , "%d", (*symbol_table)[i]->label_value);               
 		fputs(buffer , ent_fptr);
                 fputs("\n" , ent_fptr);
-printf("Here entry: %s\n" , (*symbol_table)[i]->label_name);
             }
             else if((*symbol_table)[i]->is_extern){
+printf("Here extern: %s\n" , (*symbol_table)[i]->label_name);
                 fputs((*symbol_table)[i]->label_name , ext_fptr);
                 fputs(": " , ext_fptr);
                 sprintf(buffer , "%d", (*symbol_table)[i]->label_value);
                 fputs(buffer , ent_fptr);
                 fputs("\n" , ext_fptr);
-printf("Here extern: %s\n" , (*symbol_table)[i]->label_name);
             }
+printf("Here Regular: %s\n" , (*symbol_table)[i]->label_name);
         }
     }
-   /* free(first);
-    free(second);*/
+    if(first != NULL)
+        free(first);
+    if(second != NULL)
+        free(second);
     free_or_close(2 , 2 , ent_fptr , ext_fptr);
 }
+
+int inst_coding_type(line_data **ld_arr[] , int line_number)
+{
+    if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == none)
+        return non_non;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+        return non_imm;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+        return non_label;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+        return non_reg;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+        return imm_imm;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+        return imm_label;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+        return imm_reg;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == label && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+        return label_imm;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == label && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+        return label_label;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == label && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+        return label_reg;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+        return reg_imm;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+        return reg_label;
+    else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+        return reg_reg;
+    else printg("Error, wrong coding way.\n");
+    return -1;
+}
+
+void inst_binary_insert(coding_type type , int* binary_line , line_data **ld_arr[])
+{
+    switch(type) {
+    case non_non:
+        break;
+    case non_imm:
+        break;
+    case non_label:
+        break;
+    case non_reg:
+        break;
+    case imm_imm:
+        break;
+    case imm_label:
+        break;
+    case imm_reg:
+        break;
+    case label_imm:
+        break;
+    case label_label:
+        break;
+    case label_reg:
+        break;
+    case reg_imm:
+        break;
+    case reg_label:
+        break;
+    case reg_reg:
+        break;
+    default:
+        printf("Error: wrong coding type/\n");
+        break;
+    }
