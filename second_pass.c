@@ -251,3 +251,4 @@ void inst_binary_insert(coding_type type , int* binary_line , line_data **ld_arr
         printf("Error: wrong coding type/\n");
         break;
     }
+}
