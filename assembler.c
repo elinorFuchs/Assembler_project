@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
 
     /*second_pass(&symbol_table , &ld_arr , &ic, &dc , ld_arr_size);*/
 
-    free_ld_structs(&ld_arr,ld_arr_size);
+    /*free_ld_structs(&ld_arr,ld_arr_size);*/
 
 
 

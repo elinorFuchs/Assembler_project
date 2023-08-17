@@ -46,7 +46,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     }
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i-1;
-    safe_free((void**)&ld);
+    /*safe_free((void**)&ld);*/
 
     if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic,dc)) {/*creating the symbol table of the file*/
 
@@ -67,9 +67,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
 }
 
 bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity, int *ic, int *dc) {
-
     int i;
-
         for (i = 0; i <= ld_arr_size; i++) {
 
             if(ld_arr[i]->ei != SUCCESS){
