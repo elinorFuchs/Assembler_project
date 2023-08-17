@@ -334,8 +334,10 @@ bool is_null_file(FILE *f1 , FILE *f2 , char **first_file_name , char **second_f
         if(f2 == NULL) 
             printf("Error opening \"%s\" file\n" , *second_file_name);
         free_or_close(2 , 2 , f1 , f2);
-        free_or_close(1 , 1 , *second_file_name);
-        *second_file_name = NULL;
+        if(second_file_name != NULL) {
+            free_or_close(1 , 1 , *second_file_name);
+            *second_file_name = NULL;
+        }
         null_file = true;
     }
     return null_file;
