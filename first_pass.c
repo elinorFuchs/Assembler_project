@@ -89,8 +89,11 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                         add_to_symbol_table(new_label, symbol_table, st_size, capacity);
 
                     } else if (ld_arr[i]->is_direction) {/*direction line*/
-                        strcpy(new_label->label_name, ld_arr[i]->label_name);
+                        if(ld_arr[i]->dir->d_type == d_entry) {
+                            new_label->is_entry = true;
+                        }
                         new_label->is_data = true;
+                        strcpy(new_label->label_name, ld_arr[i]->label_name);
                         new_label->type = relocatable;
                         new_label->label_value = *dc;
                         *dc += ld_arr[i]->dir->dir_line_keeper;

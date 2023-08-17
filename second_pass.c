@@ -160,25 +160,25 @@ void entries_and_externals_file(label_object **symbol_table[], int* st_size)
     }
     else {   
         for(i = 0 ; i < *st_size ; i++) {
-            if((*symbol_table[i])->is_entry){
-                fputs((*symbol_table[i])->label_name , ent_fptr);
+            if((*symbol_table)[i]->is_entry){
+                fputs((*symbol_table)[i]->label_name , ent_fptr);
                 fputs(": " , ent_fptr);
-                sprintf(buffer , "%d", (*symbol_table[i])->label_value);               
+                sprintf(buffer , "%d", (*symbol_table)[i]->label_value);
 		fputs(buffer , ent_fptr);
                 fputs("\n" , ent_fptr);
-printf("Here entry: %s\n" , (*symbol_table[i])->label_name); 
+printf("Here entry: %s\n" , (*symbol_table)[i]->label_name);
             }
-            else if((*symbol_table[i])->is_extern){
-                fputs((*symbol_table[i])->label_name , ext_fptr);
+            else if((*symbol_table)[i]->is_extern){
+                fputs((*symbol_table)[i]->label_name , ext_fptr);
                 fputs(": " , ext_fptr);
-                sprintf(buffer , "%d", (*symbol_table[i])->label_value);
+                sprintf(buffer , "%d", (*symbol_table)[i]->label_value);
                 fputs(buffer , ent_fptr);
                 fputs("\n" , ext_fptr);
-printf("Here extern: %s\n" , (*symbol_table[i])->label_name);
+printf("Here extern: %s\n" , (*symbol_table)[i]->label_name);
             }
         }
     }
-    free(first);
-    free(second);
+   /* free(first);
+    free(second);*/
     free_or_close(2 , 2 , ent_fptr , ext_fptr);
 }
