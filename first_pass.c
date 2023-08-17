@@ -119,7 +119,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                          add_to_symbol_table(new_label, symbol_table, st_size, capacity);
                      }
                    }
-                   else
+                   else if(ld_arr[i]->dir->d_type != d_entry)
                        *dc += ld_arr[i]->dir->dir_line_keeper;
                 }
                 else if(ld_arr[i]->is_instruction) {
