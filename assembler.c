@@ -19,8 +19,8 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
     int ld_arr_size = capacity;
     int st_size = 0;
 
-    pre_as("test2.as");
-    am = fopen("test2.am","r");
+    pre_as("test3.as");
+    am = fopen("test3.am","r");
 
     symbol_table =(label_object**)safe_calloc(capacity,sizeof (label_object*));
     ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));
