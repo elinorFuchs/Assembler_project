@@ -284,8 +284,7 @@ char* line_template(char* line) {
             clean_white(line , &index);
             index--;
         }
-        else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' ' \
-		 && strstr(line , ".string") == NULL){
+        else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' ' && strstr(line , ".string") == NULL){
             temp = template_line[template_index - 1];
             template_line[template_index - 1] = line[index];
             template_line[template_index] = temp;
@@ -299,7 +298,7 @@ char* line_template(char* line) {
             }
 	        template_index++;
             template_line[template_index] = line[index];
-            clean_white(line , &index);
+            clean_white(line , &index);  
         }
         else template_line[template_index] = line[index];
         index++; 
@@ -341,6 +340,7 @@ bool is_null_file(FILE *f1 , FILE *f2 , char **first_file_name , char **second_f
     }
     return null_file;
 }
+
 
 
 
