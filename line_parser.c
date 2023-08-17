@@ -195,8 +195,8 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
    }
 
     else {/*not a valid string*/
-        safe_free((void**)&args);
-        safe_free((void**)&string_line);
+        /*safe_free((void**)&args);*/
+       /* safe_free((void**)&string_line);*/
         return false;
     }
 
@@ -309,7 +309,7 @@ bool set_op_args(char* data_args, line_data* ld) {
     }
 
     void set_src_add(char *arg, line_data *ld) {
-
+        ld->inst->src_name = (char*)safe_malloc((strlen(arg) + 1) * sizeof(char));
         if (is_immediate(arg, ld)) {
             ld->inst->op_args_type->src[0] = immediate;
             ld->inst->src_name = arg;
@@ -321,7 +321,7 @@ bool set_op_args(char* data_args, line_data* ld) {
         ld->inst->src_name = arg;
     }
     void set_dest_add(char *args, line_data *ld) {
-
+        ld->inst->dest_name =(char*)safe_malloc((strlen(args)+1)* sizeof(char));
         if (is_immediate(args, ld)) {
             ld->inst->op_args_type->dest[0] = immediate;
         } else if (is_label(args, ld)) {

@@ -40,7 +40,7 @@ int second_pass(label_object **symbol_table[], line_data **ld_arr[], int *ic, in
     binary_table_p instruction_binary_table = new_binary_table(*ic - MEMORY_START_ADDRESS , MEMORY_START_ADDRESS);
     binary_table_p direction_binary_table = new_binary_table(*dc , *ic); 
 	printf("ld size: %d\n" , ld_arr_size);
-    for (i = 0; i < ld_arr_size; i++)
+    for (i = 0; i < ld_arr_size+1; i++)
     {
 	printf("number: %d\n" , i + 1);
         if ((*ld_arr)[i]->is_direction)

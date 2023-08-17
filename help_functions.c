@@ -114,6 +114,15 @@ void resize_int_arr(int** arr, int* size) {
 
 void safe_free(void **ptr) {
     if (ptr != NULL && *ptr != NULL) {
+        printf("ptr is: %d\n", *ptr);
+        printf("ptr is: %s", *ptr);
+
+        free(*ptr);
+        *ptr = NULL;
+    }
+}
+void safe_free_ld(void **ptr) {
+    if (ptr != NULL && *ptr != NULL) {
         free(*ptr);
         *ptr = NULL;
     }

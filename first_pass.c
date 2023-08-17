@@ -49,10 +49,16 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     safe_free((void**)&ld);
 
     if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic,dc)) {/*creating the symbol table of the file*/
+
         int k;
         printf("label name in symbol table is: \n");
         for (k = 0; k < *st_size; ++k) {
+            if((*symbol_table)[k]->is_data){
+                (*symbol_table)[k]->label_value += *ic;
+            }
             printf("%s\n ", (*symbol_table)[k]->label_name);
+
+            printf("%d\n ", (*symbol_table)[k]->label_value);
         }
         return true;
     } else {
@@ -64,8 +70,8 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
 
     int i;
 
-        for (i = 0; i < ld_arr_size; i++) {
-            printf("Debug: at ld_arr[%d]\n", i);
+        for (i = 0; i <= ld_arr_size; i++) {
+
             if(ld_arr[i]->ei != SUCCESS){
                 return false;/*if there is an error, label table isn't necessary*/
             }
@@ -103,7 +109,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                 if(ld_arr[i]->is_direction) {
                    if (ld_arr[i]->dir->d_type == d_extern) {
                       int j, ex_arr_size = ld_arr[i]->dir->d_content->ex_arr->ex_size;
-                     printf("Debug: external labels for ld_arr[%d]\n", i);
+
                      for (j = 0; j < ex_arr_size; ++j) {
                          label_object *new_label = (label_object *) safe_calloc(1,sizeof (label_object));
                          new_label->type = external;
@@ -113,9 +119,12 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                          add_to_symbol_table(new_label, symbol_table, st_size, capacity);
                      }
                    }
+                   else
+                       *dc += ld_arr[i]->dir->dir_line_keeper;
                 }
-            if(ld_arr[i]->is_instruction)
-                *ic += ld_arr[i]->inst->inst_line_keeper;
+                else if(ld_arr[i]->is_instruction) {
+                    *ic += ld_arr[i]->inst->inst_line_keeper;
+                }
         }
     }
 return true;
