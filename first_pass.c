@@ -28,7 +28,6 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     int i = 0;
     int line_num = 1;
     line_data *ld;
-
     while (fgets(line, MAX_LINE_SIZE, am)) {/*put each line as a struct in the line_data array*/
         ld = create_line_data(line);
         /*printf("%s\n", line);*/
@@ -55,14 +54,14 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
             printf("%s\n ", (*symbol_table)[k]->label_name);
         }
         return true;
-    } else
+    } else {
         return false;
+    }
 }
 
 bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity, int *ic, int *dc) {
 
     int i;
-    label_object* new_label = NULL;
 
         for (i = 0; i < ld_arr_size; i++) {
             printf("Debug: at ld_arr[%d]\n", i);
@@ -71,11 +70,10 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
             }
             else if (ld_arr[i]->is_label_def) {
                 /*there is a label definition in the line*/
-                printf(" Debug: label name in table arr [%d] is: %s , ic = %d, dc = %d\n", i, ld_arr[i]->label_name,
-                       *ic, *dc);
-                label_object *new_label = (label_object *) safe_malloc(sizeof(label_object));
+                printf(" Debug: label name in table arr [%d] is: %s , ic = %d, dc = %d\n", i, ld_arr[i]->label_name,*ic, *dc);
 
                 if (!(search_label((ld_arr[i]->label_name), *symbol_table, *st_size))) {
+                    label_object *new_label = (label_object *) safe_calloc(1,sizeof (label_object));
                     /*label isn't already exist - definition is valid. add to table*/
                     if (ld_arr[i]->is_instruction) {
                         strcpy(new_label->label_name, ld_arr[i]->label_name);
@@ -106,14 +104,12 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                       int j, ex_arr_size = ld_arr[i]->dir->d_content->ex_arr->ex_size;
                      printf("Debug: external labels for ld_arr[%d]\n", i);
                      for (j = 0; j < ex_arr_size; ++j) {
-                        label_object* new_label = (label_object*)safe_malloc(sizeof(label_object));
-                        new_label->type = external;
-                        new_label->is_extern = true;
-                        strcpy(new_label->label_name,ld_arr[i]->dir->d_content->ex_arr->extern_[j]);
-                        new_label->label_value = 0;
-                        add_to_symbol_table(new_label, symbol_table, st_size, capacity);
-
-
+                         label_object *new_label = (label_object *) safe_calloc(1,sizeof (label_object));
+                         new_label->type = external;
+                         new_label->is_extern = true;
+                         strcpy(new_label->label_name,ld_arr[i]->dir->d_content->ex_arr->extern_[j]);
+                         new_label->label_value = 0;
+                         add_to_symbol_table(new_label, symbol_table, st_size, capacity);
                      }
                    }
                 }
@@ -121,7 +117,6 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                 *ic += ld_arr[i]->inst->inst_line_keeper;
         }
     }
-    free(new_label);
 return true;
     }
 
@@ -163,20 +158,18 @@ void resize_ld_arr(line_data*** arr, int* size) {
         free(*arr);
         exit(1);
     }
-
     *arr = temp_arr;
     }
 
 
-void resize_symbol_table(label_object ***symbol_table, int* capacity) {
+void resize_symbol_table(label_object ***symbol_arr, int* capacity) {
     *capacity += INITIAL_SIZE;
-    label_object **temp_arr = realloc(*symbol_table, (*capacity) * sizeof(label_object *));
+    label_object **temp_arr = realloc(symbol_arr, (*capacity) * sizeof(label_object *));
     if (temp_arr == NULL) {
         printf("Memory reallocation failed.\n");
-        free(*symbol_table);
+        free(symbol_arr);
         exit(1);
     }
-
-    *symbol_table = temp_arr;
+    *symbol_arr = temp_arr;
 }
 

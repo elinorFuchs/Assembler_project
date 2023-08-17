@@ -3,33 +3,31 @@
 #include "line_parser.h"
 
 
-
-
 char* registers[8] = {"@r0","@r1","@r2", "@r3", "@r4", "@r5", "@r6", "@r7"};
 
 op_args_mthd op_args_arr [16] = {
         {lea,{label,none,none},{label,reg,none}},
-        {sub, immediate, label,reg,label,reg,none},
-        {add,immediate, label,reg,label,reg,none},
-        {cmp,immediate, label,reg,label,reg,none},
-        {mov,immediate, label,reg,label,reg,none},
-        {not,none,none,none,label,reg,none},
-        {clr,none,none,none,label,reg,none},
-        {inc,none,none,none,label,reg,none},
-        {dec,none,none,none,label,reg,none},
-        {jmp,none,none,none,label,reg,none},
-        {bne,none,none,none,label,reg,none},
-        {red,none,none,none,label,reg,none},
-        {prn,none,none,none,immediate,label,reg},
-        {jsr,none,none,none,label,reg,none},
-        {stop,none,none,none,none,none,none},
-        {rts,none,none,none,none,none,none}
+        {sub, {immediate, label,reg},{label,reg,none}},
+        {add,{immediate, label,reg},{label,reg,none}},
+        {cmp,{immediate, label,reg},{label,reg,none}},
+        {mov,{immediate, label,reg},{label,reg,none}},
+        {not,{none,none,none},{label,reg,none}},
+        {clr,{none,none,none},{label,reg,none}},
+        {inc,{none,none,none},{label,reg,none}},
+        {dec,{none,none,none},{label,reg,none}},
+        {jmp,{none,none,none},{label,reg,none}},
+        {bne,{none,none,none},{label,reg,none}},
+        {red,{none,none,none},{label,reg,none}},
+        {prn,{none,none,none},{immediate,label,reg}},
+        {jsr,{none,none,none},{label,reg,none}},
+        {stop,{none,none,none},{none,none,none}},
+        {rts,{none,none,none},{none,none,none}}
         };
 /*add comment if empty line or comment line am file already deleted it.*/
 
 line_data* create_line_data(char *line) {
 
-    line_data* ld = safe_malloc(sizeof(line_data));
+    line_data* ld = (line_data* )safe_malloc(sizeof(line_data));
     *ld = (line_data){0};
     int index =0;
     char* word;
@@ -124,6 +122,8 @@ line_data* create_line_data(char *line) {
 }
 
 
+
+
 bool is_label_def(char *word, line_data *ld) {
 
     int length = strlen(word),i = 0;
@@ -180,7 +180,7 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
     char* string_line;
     char* args;
 
-    string_line = safe_malloc(strlen(temp_line) + 1);
+    string_line = (char*)safe_malloc(strlen(temp_line) + 1);
     ld->dir->d_content->string = (str_d*)safe_malloc(sizeof(str_d));
     ld->dir->d_content->string->string = (char*)safe_malloc(strlen(temp_line) + 1);
 
@@ -189,13 +189,19 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
 
     if(is_valid_string(string_line, ld)){/*include error message if not, search for quotes*/
         args = copy_s_args(string_line);/*skip spaces in the beginning, find quote, copy till the ending quote:*/
-
         strcpy(ld->dir->d_content->string->string, args);/*put the .string argument in line_data struct*/
         ld->dir->d_content->string->str_len = strlen(args);
-        ld->dir->dir_line_keeper =strlen(args)+1;
+        ld->dir->dir_line_keeper = strlen(args)+1;
+        safe_free((void**)&args);
    }
-    else /*not a valid string*/
+
+    else {/*not a valid string*/
+        safe_free((void**)&args);
+        safe_free((void**)&string_line);
         return false;
+    }
+
+    safe_free((void**)&string_line);
     return true;
 }
 
@@ -215,9 +221,7 @@ char *copy_s_args(char *line) {
     }
     int length = end - start;
     char* s_content = (char*)safe_malloc((length + 1) * sizeof(char));
-    if (s_content == NULL) {
-        return NULL;
-    }
+
     strncpy(s_content, &line[start], length);
     s_content[length] = '\0';
     return s_content;
@@ -225,7 +229,7 @@ char *copy_s_args(char *line) {
 
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*check commas, count arguments, check if the address method is valid, ld updates*/
 {
-    char* inst_line = safe_malloc(MAX_LINE_SIZE * sizeof(char));
+    char* inst_line = safe_malloc(MAX_LINE_SIZE *sizeof(char));
 
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
 

@@ -19,10 +19,10 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
     int ld_arr_size = capacity;
     int st_size = 0;
 
-    pre_as("test1.as");
-    am = fopen("test1.am","r");
+    pre_as("validtest.as");
+    am = fopen("validtest.am","r");
 
-    symbol_table = safe_calloc(capacity,sizeof (label_object*));
+    symbol_table =(label_object**)safe_calloc(capacity,sizeof (label_object*));
     ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));
 
 
@@ -40,8 +40,8 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
 
     fclose(am);
 
-    safe_free((void **)&symbol_table);
-    safe_free((void**)&ld_arr);
+    /*safe_free((void **)symbol_table);
+    safe_free((void**)ld_arr);*/
     return 0;
 
 }

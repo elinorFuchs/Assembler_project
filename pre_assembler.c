@@ -268,7 +268,7 @@ char* line_template(char* line) {
     int index , template_index;
     char *template_line , temp;
 
-    template_line = malloc(sizeof(char) * strlen(line) + 3);
+    template_line = malloc(sizeof(char) * (strlen(line) + 10));
     index = 0 , template_index = 0;
     
     while(line[index] != '\n' && line[index] != '\0') {
