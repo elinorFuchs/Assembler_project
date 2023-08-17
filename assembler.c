@@ -19,8 +19,8 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
     int ld_arr_size = capacity;
     int st_size = 0;
 
-    pre_as("validtest.as");
-    am = fopen("validtest.am","r");
+    pre_as("test1.as");
+    am = fopen("test1.am","r");
 
     symbol_table =(label_object**)safe_calloc(capacity,sizeof (label_object*));
     ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));
@@ -34,9 +34,7 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
 
     first_pass (am, &symbol_table,&st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
 
-
-
-
+   /* second_pass(&symbol_table , &ld_arr , &ic, &dc);*/
 
     fclose(am);
 
@@ -45,4 +43,19 @@ int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצ
     return 0;
 
 }
+/*
+void free_ld_structs(line_data** ld_arr,*ld_arr_size){
+    int i;
+    for (i = 0; i < *ld_arr_size ; ++i) {
 
+    }
+
+    if((*ld_arr)[i].is_direction){
+        if((*ld_arr)[i].dir->d_type == d_string){
+            free((void**)(*ld_arr)[i].dir->d_content->string->string )
+        }
+
+    }
+
+}
+*/

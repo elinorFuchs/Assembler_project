@@ -27,11 +27,11 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     char line[MAX_LINE_SIZE];
     int i = 0;
     int line_num = 1;
-    line_data *ld;
+    line_data* ld;
     while (fgets(line, MAX_LINE_SIZE, am)) {/*put each line as a struct in the line_data array*/
         ld = create_line_data(line);
-        /*printf("%s\n", line);*/
         (*ld_arr)[i] = ld;
+
         if (ld->ei != SUCCESS) {
             printf("In line %d:\n", line_num);
             printf("%s", line);
@@ -42,10 +42,11 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
         if (i >= *ld_arr_size) {
             resize_ld_arr(ld_arr, ld_arr_size);
         }
-    }
 
+    }
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
-    *ld_arr_size = i;
+    *ld_arr_size = i-1;
+    safe_free((void**)&ld);
 
     if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic,dc)) {/*creating the symbol table of the file*/
         int k;
@@ -66,7 +67,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
         for (i = 0; i < ld_arr_size; i++) {
             printf("Debug: at ld_arr[%d]\n", i);
             if(ld_arr[i]->ei != SUCCESS){
-                continue;
+                return false;/*if there is an error, label table isn't necessary*/
             }
             else if (ld_arr[i]->is_label_def) {
                 /*there is a label definition in the line*/
@@ -93,7 +94,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
 
                     }
                 } else/*invalid label definition - already exist in symbol table */{
-                    printf("Error: There is invalid label definition, label already defined in this file");
+                    printf("Error: There is invalid label definition, label already defined in this file label name is: %s", ld_arr[i]->label_name);
                     return false;
                 }
             }
@@ -142,7 +143,7 @@ bool search_label(char* label_name, label_object* symbol_table[], int s_table_si
                 return true;
             }
             else if(symbol_table[i]->type == relocatable){
-                printf("Error: label already defined.\n");
+                printf("Error: label already defined. name is : %s\n", label_name);
                 return true;
             }
         }

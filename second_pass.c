@@ -33,7 +33,7 @@ void free_binary_table(binary_table_p b1 , int lines_count) {
         free(b1->curr_index);
 }
 
-int second_pass(label_object *symbol_table[], line_data *ld_arr[], int *ic, int *dc)
+int second_pass(label_object **symbol_table[], line_data **ld_arr[], int *ic, int *dc)
 {
     int ld_arr_size , i , j , char_as_ascii;
     
@@ -43,22 +43,22 @@ int second_pass(label_object *symbol_table[], line_data *ld_arr[], int *ic, int 
     binary_table_p direction_binary_table = new_binary_table(*dc , *ic); 
     for (i = 0; i < ld_arr_size; i++)
     {
-        if ((*ld_arr)[i].is_direction)
+        if ((*ld_arr)[i]->is_direction)
         {
-            switch ((*ld_arr)[i].dir->d_type)
+            switch ((*ld_arr)[i]->dir->d_type)
             {
             case d_string:
-                for (j = 0; j < (*ld_arr)[i].dir->d_content->string->str_len; j++)
+                for (j = 0; j < (*ld_arr)[i]->dir->d_content->string->str_len; j++)
                 {
-                    char_as_ascii = (*ld_arr)[i].dir->d_content->string->string[j];
+                    char_as_ascii = (*ld_arr)[i]->dir->d_content->string->string[j];
                     intToTwosComplement(char_as_ascii, direction_binary_table->lines_as_binary[*direction_binary_table->curr_index]);
                     (*direction_binary_table->curr_index)++;
                 }
                 break;
             case d_data:
-                for (j = 0; j < (*ld_arr)[i].dir->d_content->d_arr->data_arr_size; j++)
+                for (j = 0; j < (*ld_arr)[i]->dir->d_content->d_arr->data_arr_size; j++)
                 {
-                    intToTwosComplement((*ld_arr)[i].dir->d_content->d_arr->data_arr[j] , \
+                    intToTwosComplement((*ld_arr)[i]->dir->d_content->d_arr->data_arr[j] , \
                                     instruction_binary_table->lines_as_binary[*instruction_binary_table->curr_index]);
                     (*instruction_binary_table->curr_index)++;
                 }
@@ -72,9 +72,9 @@ int second_pass(label_object *symbol_table[], line_data *ld_arr[], int *ic, int 
                 printf("Error: direction type\n");
             }
         }
-        if ((*ld_arr)[i].is_instruction)
+        if ((*ld_arr)[i]->is_instruction)
         {
-            switch ((*ld_arr)[i].inst->inst_line_keeper)
+            switch ((*ld_arr)[i]->inst->inst_line_keeper)
             {
             case 1:
 
