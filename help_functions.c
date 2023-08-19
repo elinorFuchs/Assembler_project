@@ -15,6 +15,15 @@ FILE* safe_fopen (const char *filename, const char *mode, char* suffix){
         perror("error");
     return fptr;
 }
+char* path_string (const char *filename,char* suffix){
+
+    char* new_file_name = safe_malloc(sizeof (char) * (strlen(filename) + strlen(suffix) + 1));
+    strcpy(new_file_name,filename);
+    strcat(new_file_name, suffix);
+    return new_file_name;
+
+
+}
 char* copy_word(const char* line, int* index) {
 
     skip_spaces(index, line);

@@ -1,7 +1,6 @@
 /*Created by elifu on 02/08/2023.*/
 
 #include "assembler.h"
-
 #include "line_parser.h"
 #include "first_pass.h"
 #include "help_functions.h"
@@ -11,39 +10,42 @@
 
 int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצביע לקובץ ומקבלת את הפרמטרים של fopen ואת הסיומת*/
 
-    int ic = 100, dc = 0;
-    label_object** symbol_table;
-    line_data** ld_arr = NULL;
+
+
     FILE* am;
     int capacity  = INITIAL_SIZE;
     int ld_arr_size = capacity;
     int st_size = 0;
+    int i;
+    char* as_suffix = ".as";
+    char* am_suffix = ".am";
+    char* as_file_path;
 
-    pre_as("test3.as");
-    am = fopen("test3.am","r");
+    for (i = 1; i <= argc; i++) {
+        int ic = 100, dc = 0;
 
-    symbol_table =(label_object**)safe_calloc(capacity,sizeof (label_object*));
-    ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));
+        label_object** symbol_table;
+        line_data** ld_arr = NULL;
+        symbol_table =(label_object**)safe_calloc(capacity,sizeof (label_object*));
+        ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));
 
+        if (strlen(argv[i]) > FILE_NAME) {
+            printf("Filename is too long - %d characters max is allowed\n" , FILE_NAME);
+            continue;
+        }
 
-    /* am = fopen("validam.am","r");
-     if (am == NULL) {
-         printf("Error opening the file.\n");
-         return 1;
-     }*/
+        as_file_path= path_string(argv[i],as_suffix);
+        pre_as(as_file_path);
+        am = safe_fopen (argv[i], "r", am_suffix);
+        first_pass (am, &symbol_table,&st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
+        second_pass(&symbol_table , &st_size , &ld_arr , &ic, &dc , ld_arr_size);
+        fclose(am);
+        free_ld_structs(&ld_arr,ld_arr_size);
+        safe_free((void **)symbol_table);
+        safe_free((void**)ld_arr);
 
-    first_pass (am, &symbol_table,&st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
+    }
 
-    second_pass(&symbol_table , &st_size , &ld_arr , &ic, &dc , ld_arr_size);
-
-    /*free_ld_structs(&ld_arr,ld_arr_size);*/
-
-
-
-    fclose(am);
-
-    /*safe_free((void **)symbol_table);
-    safe_free((void**)ld_arr);*/
     return 0;
 
 }
@@ -72,10 +74,10 @@ void free_ld_structs(line_data** ld_arr[], int ld_arr_size) {
             safe_free((void **) &(*ld_arr)[i]->dir->d_content);
             safe_free((void **) &(*ld_arr)[i]->dir);
         } else if ((*ld_arr)[i]->is_instruction) {
-         printf("dest name is : %s\n", (*ld_arr)[i]->inst->dest_name);
-           safe_free((void **)&((*ld_arr)[i]->inst->dest_name));
+         /*printf("dest name is : %s\n", (*ld_arr)[i]->inst->dest_name);*/
+          /* safe_free((void **)&((*ld_arr)[i]->inst->dest_name));*/
             safe_free((void **) &(*ld_arr)[i]->inst->op_args_type);
-            safe_free((void **)&(*ld_arr)[i]->inst->src_name);
+            /*safe_free((void **)&(*ld_arr)[i]->inst->src_name);*/
             safe_free((void **) &(*ld_arr)[i]->inst);
         }
        /* free((void **)(ld_arr)[i]);*/
