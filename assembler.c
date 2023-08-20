@@ -43,8 +43,8 @@ int main(int argc, char* argv[]) {/*לעשות פונקציה שמחזירה מ�
     return 0;
 
     }
-    return 0;
-}
+
+
 
     void free_ld_structs(line_data **ld_arr[], int ld_arr_size) {
         int i;
