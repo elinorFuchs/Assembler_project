@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {/*לעשות פונקציה שמחזירה מ�
     char *am_suffix = ".am";
     char *as_file_path;
 
-    for (i = 1; i <= argc; i++) {
+    for (i = 1; i < argc; i++) {
         int ic = 100, dc = 0;
 
         label_object **symbol_table;
@@ -40,9 +40,8 @@ int main(int argc, char* argv[]) {/*לעשות פונקציה שמחזירה מ�
         /* safe_free((void **)symbol_table);
          safe_free((void**)ld_arr);*/
 
-        return 0;
-
     }
+    return 0;
 }
 
     void free_ld_structs(line_data **ld_arr[], int ld_arr_size) {

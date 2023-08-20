@@ -9,7 +9,7 @@ op_args_mthd op_args_arr [16] = {
         {lea,{label,none,none},{label,reg,none}},
         {sub, {immediate, label,reg},{label,reg,none}},
         {add,{immediate, label,reg},{label,reg,none}},
-        {cmp,{immediate, label,reg},{label,reg,none}},
+        {cmp,{immediate, label,reg},{immediate,label,reg}},
         {mov,{immediate, label,reg},{label,reg,none}},
         {not,{none,none,none},{label,reg,none}},
         {clr,{none,none,none},{label,reg,none}},
