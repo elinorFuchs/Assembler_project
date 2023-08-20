@@ -4,11 +4,6 @@
 #define ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
 #include "help_functions.h"
 
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #define DIRECTION_NUM 4
 #define MAX_LABEL_SIZE 31
 #define MAX_LINE_SIZE 82
