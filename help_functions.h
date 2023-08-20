@@ -4,7 +4,9 @@
 #define PRE_ASSEMBLER_H
 #include <stdlib.h>
 #include <stdio.h>
-#include "line_parser.h"
+#include <string.h>
+#include <stdarg.h>
+#include <ctype.h>
 
 typedef enum {false, true} bool;
 
