@@ -627,7 +627,7 @@ void set_entry_labels(line_data* ld, char* args){
         ld->dir->d_content->en_arr->en_size = count;
         /*DEBUG PRINT*/
         for (i = 0; i < count; i++) {
-            printf("%s \n", ld->dir->d_content->en_arr->entry[i]);
+            printf(" ENTRIES are: %s \n", ld->dir->d_content->en_arr->entry[i]);
         }
         free(entry_label_arr);
         return;

@@ -51,16 +51,14 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     /*safe_free((void**)&ld);*/
 
     if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic,dc)) {/*creating the symbol table of the file*/
-
         int k;
-        printf("label name in symbol table is: \n");
         for (k = 0; k < *st_size; ++k) {
             if((*symbol_table)[k]->is_data){
                 (*symbol_table)[k]->label_value += *ic;
             }
-            printf("%s\n ", (*symbol_table)[k]->label_name);
+            printf("label name is: %s\n ", (*symbol_table)[k]->label_name);
 
-            printf("%d\n ", (*symbol_table)[k]->label_value);
+            printf("VALUE IS: %d\n ", (*symbol_table)[k]->label_value);
         }
         return true;
     } else {
@@ -76,8 +74,6 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
         }
        if (ld_arr[i]->is_label_def){
             /*there is a label definition in the line*/
-            printf(" Debug: label name in table arr [%d] is: %s , ic = %d, dc = %d\n", i, ld_arr[i]->label_name,
-                   *ic, *dc);
             if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -3){/*label isn't already exist - definition is valid. add to table*/
                 label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
                 if (ld_arr[i]->is_instruction) {
@@ -117,12 +113,15 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
         else {/*not a label definition*/
             if (ld_arr[i]->is_direction) {
                 if (ld_arr[i]->dir->d_type == d_entry) {/*add loop*/
-                    label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
-                    strcpy(new_label->label_name, *ld_arr[i]->dir->d_content->en_arr->entry);
-                    new_label->is_entry = true;
-                    new_label->label_value = -1;/*-1 is entry label temp val*/
-                    new_label->type = relocatable;
-                    add_to_symbol_table(new_label, symbol_table, st_size, capacity);
+                    int k, en_arr_size = ld_arr[i]->dir->d_content->en_arr->en_size;
+                    for (k = 0; k < en_arr_size; ++k) {
+                        label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
+                        strcpy(new_label->label_name, ld_arr[i]->dir->d_content->en_arr->entry[k]);
+                        new_label->is_entry = true;
+                        new_label->label_value = -1;/*-1 is entry label temp val*/
+                        new_label->type = relocatable;
+                        add_to_symbol_table(new_label, symbol_table, st_size, capacity);
+                    }
                 }
                 else if (ld_arr[i]->dir->d_type == d_extern) {
                     int j, ex_arr_size = ld_arr[i]->dir->d_content->ex_arr->ex_size;
@@ -147,14 +146,10 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
     return true;
 }
 
-
-
 void add_to_symbol_table(label_object *label, label_object ***symbol_table, int *size, int *capacity) {
-
     if (*size == *capacity) {
         resize_symbol_table(symbol_table, capacity);
     }
-
     (*symbol_table)[*size] = label;
     (*size)++;
 }
