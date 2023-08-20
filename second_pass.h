@@ -23,10 +23,10 @@ typedef enum coding_type{
     reg_reg
 }coding_type;
 
-int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr[], int *ic, int *dc , int lines_count);
+int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr[], int *ic, int *dc , int lines_count , char* file_name);
 binary_table_p new_binary_table(int lines_count , int start_address);
 void intToTwosComplement(int num, int* binary_line);
 void free_binary_table(binary_table_p b1 , int lines_count);
-void entries_and_externals_file(label_object **symbol_table[], int* st_size);
+void entries_and_externals_file(label_object **symbol_table[], int* st_size , char* file_name);
 int inst_coding_type(line_data **ld_arr[] , int line_number);
 void inst_binary_insert(coding_type type , int* binary_line , line_data **ld_arr[]);
