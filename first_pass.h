@@ -1,12 +1,6 @@
 /*Created by elifu on 02/08/2023.*/
 
-#ifndef ASSEMBLER_OPENU_PROJECT_FIRST_PASS_H
-#define ASSEMBLER_OPENU_PROJECT_FIRST_PASS_H
-
-#include <string.h>
-#include <stdio.h>
 #include "pre_assembler.h"
-
 
 #define INITIAL_SIZE 10
 

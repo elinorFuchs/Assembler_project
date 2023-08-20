@@ -1,13 +1,6 @@
 /*Created by elifu on 02/08/2023.*/
 
-#ifndef ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
-#define ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
-
 #include "help_functions.h"
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #define DIRECTION_NUM 4
 #define MAX_LABEL_SIZE 31
@@ -166,5 +159,3 @@ bool is_inst_arg_valid(char *argument, line_data *ld);
 void set_extern_labels(line_data * ld, char* args);
 void set_entry_labels(line_data * ld, char* args);
 bool is_commas_valid(char* args, line_data* ld);
-
-#endif /*ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H*/

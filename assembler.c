@@ -1,12 +1,8 @@
 /*Created by elifu on 02/08/2023.*/
 
 #include "assembler.h"
-#include "line_parser.h"
-#include "first_pass.h"
-#include "help_functions.h"
-#include <stdio.h>
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצביע לקובץ ומקבלת את הפרמטרים של fopen ואת הסיומת*/
 
     FILE* am;
     int capacity  = INITIAL_SIZE;
@@ -36,16 +32,18 @@ int main(int argc, char* argv[]){
         first_pass (am, &symbol_table,&st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
         second_pass(&symbol_table , &st_size , &ld_arr , &ic, &dc , ld_arr_size);
         fclose(am);
+        free_ld_structs(&ld_arr,ld_arr_size);
+        safe_free((void **)symbol_table);
+        safe_free((void**)ld_arr);
 
        /* free_ld_structs(&ld_arr,ld_arr_size);*/
        /* safe_free((void **)symbol_table);
         safe_free((void**)ld_arr);*/
 
-    }
     return 0;
 
 }
-/*
+
 void free_ld_structs(line_data** ld_arr[], int ld_arr_size) {
     int i;
     for (i = 0; i < ld_arr_size; i++) {
@@ -70,13 +68,13 @@ void free_ld_structs(line_data** ld_arr[], int ld_arr_size) {
             safe_free((void **) &(*ld_arr)[i]->dir->d_content);
             safe_free((void **) &(*ld_arr)[i]->dir);
         } else if ((*ld_arr)[i]->is_instruction) {
-         printf("dest name is : %s\n", (*ld_arr)[i]->inst->dest_name);
-          safe_free((void **)&((*ld_arr)[i]->inst->dest_name));
+         /*printf("dest name is : %s\n", (*ld_arr)[i]->inst->dest_name);*/
+          /* safe_free((void **)&((*ld_arr)[i]->inst->dest_name));*/
             safe_free((void **) &(*ld_arr)[i]->inst->op_args_type);
-            safe_free((void **)&(*ld_arr)[i]->inst->src_name);
+            /*safe_free((void **)&(*ld_arr)[i]->inst->src_name);*/
             safe_free((void **) &(*ld_arr)[i]->inst);
         }
-        free((void **)(ld_arr)[i]);
+       /* free((void **)(ld_arr)[i]);*/
     }
 }
-*/
+
