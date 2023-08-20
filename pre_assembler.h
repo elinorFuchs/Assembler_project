@@ -1,11 +1,6 @@
 #ifndef HELP_FUNCTIONS_H
 #define HELP_FUNCTIONS_H
 #include "line_parser.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <ctype.h>
 
 
 #define MAX_GET_LEN 100
