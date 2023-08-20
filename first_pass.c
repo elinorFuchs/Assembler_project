@@ -195,8 +195,8 @@ void resize_ld_arr(line_data*** arr, int* size) {
 
 
 void resize_symbol_table(label_object ***symbol_arr, int* capacity) {
-    *capacity += INITIAL_SIZE;
-    label_object **temp_arr = realloc(symbol_arr, (*capacity) * sizeof(label_object *));
+    (*capacity) += INITIAL_SIZE;
+    label_object **temp_arr = realloc(*symbol_arr, (*capacity) * sizeof(label_object *));
     if (temp_arr == NULL) {
         printf("Memory reallocation failed.\n");
         free(symbol_arr);

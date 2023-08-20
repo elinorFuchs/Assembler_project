@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {/*לעשות פונקציה שמחזירה מ�
 
     for (i = 1; i < argc; i++) {
         int ic = 100, dc = 0;
-
         label_object **symbol_table;
         line_data **ld_arr = NULL;
         symbol_table = (label_object **) safe_calloc(capacity, sizeof(label_object *));
@@ -30,7 +29,7 @@ int main(int argc, char* argv[]) {/*לעשות פונקציה שמחזירה מ�
         pre_as(as_file_path);
         am = safe_fopen(argv[i], "r", am_suffix);
         first_pass(am, &symbol_table, &st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
-        second_pass(&symbol_table, &st_size, &ld_arr, &ic, &dc, ld_arr_size);
+        second_pass(&symbol_table, &st_size, &ld_arr, &ic, &dc, ld_arr_size , argv[i]);
         fclose(am);
         /*free_ld_structs(&ld_arr, ld_arr_size);
         safe_free((void **) symbol_table);
@@ -39,6 +38,9 @@ int main(int argc, char* argv[]) {/*לעשות פונקציה שמחזירה מ�
         /* free_ld_structs(&ld_arr,ld_arr_size);*/
         /* safe_free((void **)symbol_table);
          safe_free((void**)ld_arr);*/
+
+    }
+    return 0;
 
     }
     return 0;

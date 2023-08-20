@@ -31,89 +31,70 @@ void free_binary_table(binary_table_p b1 , int lines_count) {
         free(b1->curr_index);
 }
 
-int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr[], int *ic, int *dc , int lines_count)
+int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr[], int *ic, int *dc , int lines_count , char* file_name)
 {
     int i , j , char_as_ascii , data_count;
-printf("binary lines instructions: %d\n" , *ic - MEMORY_START_ADDRESS);
+    printf("binary lines instructions: %d\n" , *ic - MEMORY_START_ADDRESS);
     binary_table_p instruction_binary_table = new_binary_table(*ic - MEMORY_START_ADDRESS , MEMORY_START_ADDRESS);
-printf("binary lines direcctions: %d\n" , *dc);
-printf("total lines: %d\n" , lines_count + 1);
+    printf("binary lines direcctions: %d\n" , *dc);
+    printf("total lines: %d\n" , lines_count + 1);
     binary_table_p direction_binary_table = new_binary_table(*dc , *ic); 
-/* needed to add last line to the loop!!!!! */
-    for (i = 0; i < lines_count + 1 ; i++)
-    {
-	printf("number: %d\n" , i + 1);
-        if ((*ld_arr)[i]->is_direction)
-        {
-	printf("direction type: %d\n" , (*ld_arr)[i]->dir->d_type);
-        switch ((*ld_arr)[i]->dir->d_type) {
-
-            case d_string:
-		        printf(".string time: \n");
-                for (j = 0; j < (*ld_arr)[i]->dir->d_content->string->str_len; j++)
-                {
-                    char_as_ascii = (*ld_arr)[i]->dir->d_content->string->string[j];
-                    printf("char: %c\n" , (*ld_arr)[i]->dir->d_content->string->string[j]);
-                    printf("curr_index direction binary table: %d\n" , *direction_binary_table->curr_index);
-                    intToTwosComplement(char_as_ascii, direction_binary_table->lines_as_binary[*(direction_binary_table->curr_index)]);
-                    (*direction_binary_table->curr_index)++; 
-                }
-                break;
-            case d_data:
-		        printf(".data time: \n");
-		        data_count = (*ld_arr)[i]->dir->d_content->d_arr->data_arr_size;
-		        printf("data count: %d\n" , data_count);
-                for (j = 0; j < data_count; j++) {
-			        printf("num: %d\n" , (*ld_arr)[i]->dir->d_content->d_arr->data_arr[j]);
-			        printf("curr_index direction binary table: %d\n" , *direction_binary_table->curr_index);
-                    intToTwosComplement((*ld_arr)[i]->dir->d_content->d_arr->data_arr[j] , direction_binary_table->lines_as_binary[*(direction_binary_table->curr_index)]);
-                    (*direction_binary_table->curr_index)++;
-                }
-                break;
-            default:
-                if((*ld_arr)[i]->dir->d_type != d_entry && (*ld_arr)[i]->dir->d_type != d_extern)
-                    printf("Error: direction type\n");
-                else if((*ld_arr)[i]->dir->d_type == d_entry) {
-                    for(j = 0 ; j < (*ld_arr)[i]->dir->d_content->en_arr->en_size ; j++) {
-                        if(search_label((*ld_arr)[i]->dir->d_content->en_arr->entry[j] , *symbol_table , *st_size) == -3) 
-                            printf("Error: label \"%s\" not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);      
-                    }  
-                }
-                else {
-                    for(j = 0 ; j < (*ld_arr)[i]->dir->d_content->ex_arr->ex_size ; j++) {
-                        if(search_label((*ld_arr)[i]->dir->d_content->ex_arr->extern_[j] , *symbol_table , *st_size) == -3) 
-                            printf("Error: label \"%s\" not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);
+    /* needed to add last line to the loop!!!!! */
+    for (i = 0; i < lines_count + 1 ; i++){
+	    printf("number: %d\n" , i + 1);
+        if ((*ld_arr)[i]->is_direction) {
+	        printf("direction type: %d\n" , (*ld_arr)[i]->dir->d_type);
+            switch ((*ld_arr)[i]->dir->d_type) {
+                case d_string:
+                    printf(".string time: \n");
+                    for (j = 0; j < (*ld_arr)[i]->dir->d_content->string->str_len; j++)
+                    {
+                        char_as_ascii = (*ld_arr)[i]->dir->d_content->string->string[j];
+                        printf("char: %c\n" , (*ld_arr)[i]->dir->d_content->string->string[j]);
+                        printf("curr_index direction binary table: %d\n" , *direction_binary_table->curr_index);
+                        intToTwosComplement(char_as_ascii, direction_binary_table->lines_as_binary[*(direction_binary_table->curr_index)]);
+                        (*direction_binary_table->curr_index)++; 
                     }
-                }
-                break;
+                    break;
+                case d_data:
+                    printf(".data time: \n");
+                    data_count = (*ld_arr)[i]->dir->d_content->d_arr->data_arr_size;
+                    printf("data count: %d\n" , data_count);
+                    for (j = 0; j < data_count; j++) {
+                        printf("num: %d\n" , (*ld_arr)[i]->dir->d_content->d_arr->data_arr[j]);
+                        printf("curr_index direction binary table: %d\n" , *direction_binary_table->curr_index);
+                        intToTwosComplement((*ld_arr)[i]->dir->d_content->d_arr->data_arr[j] , direction_binary_table->lines_as_binary[*(direction_binary_table->curr_index)]);
+                        (*direction_binary_table->curr_index)++;
+                    }
+                    break;
+                default:
+                    if((*ld_arr)[i]->dir->d_type != d_entry && (*ld_arr)[i]->dir->d_type != d_extern)
+                        printf("Error: direction type\n");
+                    else if((*ld_arr)[i]->dir->d_type == d_entry) {
+                        for(j = 0 ; j < (*ld_arr)[i]->dir->d_content->en_arr->en_size ; j++) {
+                            if(search_label((*ld_arr)[i]->dir->d_content->en_arr->entry[j] , *symbol_table , *st_size) == -3) 
+                                printf("Error: label \"%s\" not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);      
+                        }  
+                    }
+                    else {
+                        for(j = 0 ; j < (*ld_arr)[i]->dir->d_content->ex_arr->ex_size ; j++) {
+                            if(search_label((*ld_arr)[i]->dir->d_content->ex_arr->extern_[j] , *symbol_table , *st_size) == -3) 
+                                printf("Error: label \"%s\" not defined in this file\n" , (*ld_arr)[i]->dir->d_content->en_arr->entry[j]);
+                        }
+                    }
+                    break;
             }
         }    
-        if ((*ld_arr)[i]->is_instruction)
-        {
-	printf("inst_line_keeper: %d\n" , (*ld_arr)[i]->inst->inst_line_keeper);
-            switch ((*ld_arr)[i]->inst->inst_line_keeper)
-            {
-            case 1:
-	printf("another time1:\n");
-                break;
-            case 2:
-	printf("another time2:\n");
-                break;
-            case 3:
-	printf("another time3:\n");
-                break;
-            default:
-                printf("Error: instruction type\n");
-            }
+        else if ((*ld_arr)[i]->is_instruction){
+            printf("Coding type: %d\n" , inst_coding_type(ld_arr , i));
         }
-	if (!(*ld_arr)[i]->is_direction && !(*ld_arr)[i]->is_instruction)
-		printf("error: NOR type\n");
+	    else if (!(*ld_arr)[i]->is_direction && !(*ld_arr)[i]->is_instruction)
+		    printf("error: NOR type\n");
     }
-    entries_and_externals_file(symbol_table, st_size);
+    entries_and_externals_file(symbol_table, st_size , file_name);
     free_binary_table(instruction_binary_table , *ic - MEMORY_START_ADDRESS);
     if(instruction_binary_table != NULL)
         free(instruction_binary_table);
-
     free_binary_table(direction_binary_table , *dc);
     if(direction_binary_table != NULL)
         free(direction_binary_table);
@@ -144,21 +125,22 @@ void intToTwosComplement(int num, int* binary_line)
     printf("\n");
 }
 
-void entries_and_externals_file(label_object **symbol_table[], int* st_size)
+void entries_and_externals_file(label_object **symbol_table[], int* st_size , char* file_name)
 {
     int i;
-    char *first = malloc(sizeof(char) * 8); 
-	strcpy(first , "entries");
-    char *second = malloc(sizeof(char) * 10);
-    strcpy(second , "externals");
+    char *first = malloc(sizeof(char) * (5 + strlen(file_name))); 
+	strcpy(first , file_name);
+	strcat(first , ".ent");
+    char *second = malloc(sizeof(char) * (5 + strlen(file_name)));
+    strcpy(second , file_name);
+    strcat(second , ".ext");
     FILE *ent_fptr , *ext_fptr;
     ent_fptr = fopen( first , "w");
     ext_fptr = fopen( second , "w");
     char buffer[20]; 
 
-    if(is_null_file(ent_fptr , ext_fptr , &first , &second)) {
+    if(is_null_file(ent_fptr , ext_fptr , &first , &second)) 
         printf("Error\n");
-    }
     else {   
         for(i = 0 ; i < *st_size ; i++) {
             if((*symbol_table)[i]->is_entry){
@@ -172,12 +154,9 @@ void entries_and_externals_file(label_object **symbol_table[], int* st_size)
             else if((*symbol_table)[i]->is_extern){
 printf("Here extern: %s\n" , (*symbol_table)[i]->label_name);
                 fputs((*symbol_table)[i]->label_name , ext_fptr);
-                fputs(": " , ext_fptr);
-                sprintf(buffer , "%d", (*symbol_table)[i]->label_value);
-                fputs(buffer , ent_fptr);
                 fputs("\n" , ext_fptr);
             }
-printf("Here Regular: %s\n" , (*symbol_table)[i]->label_name);
+else printf("Here Regular: %s\n" , (*symbol_table)[i]->label_name);
         }
     }
     if(first != NULL)
@@ -189,31 +168,31 @@ printf("Here Regular: %s\n" , (*symbol_table)[i]->label_name);
 
 int inst_coding_type(line_data **ld_arr[] , int line_number)
 {
-    if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == none)
+    if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == none)
         return non_non;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
         return non_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
         return non_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == none && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
         return non_reg;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
         return imm_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
         return imm_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
         return imm_reg;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == label && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == label && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
         return label_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == label && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == label && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
         return label_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == label && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == label && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
         return label_reg;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == immediate)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == reg && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
         return reg_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == label)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == reg && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
         return reg_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
+    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == reg && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
         return reg_reg;
     else printf("Error, wrong coding way.\n");
     return -1;
