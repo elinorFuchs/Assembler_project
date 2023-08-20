@@ -1,5 +1,6 @@
-#ifndef HELP_FUNCTIONS_H
-#define HELP_FUNCTIONS_H
+#ifndef ASSEMBLER_OPENU_PROJECT_PRE_ASSEMBLER_H
+#define ASSEMBLER_OPENU_PROJECT_PRE_ASSEMBLER_H
+
 #include "line_parser.h"
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +22,7 @@
 
 typedef struct mcro_table* mcro_table_p;
 
+
 /** Creates .am file after macro breakdown, and after adjustment to the template of 'line_template'. It is assumed
     that a call to a macro can only be in line that contains nothing except the macro name. */
 int pre_as(char* path);
@@ -33,7 +35,7 @@ char* line_template(char* line);
 void str_copy(char **copy , char **original , bool start_no_spaces);
 void string_copy(char *first , char *copy);
 /*Given an optional macro declaration line, it ensures that it is new, valid, and has a legal name.*/
-void mcro_dec_line(int* index, int* index_copy, bool* mcro_flag, char** curr_line_index, char* curr_line, 
+void mcro_dec_line(int* index, int* index_copy, bool * mcro_flag, char** curr_line_index, char* curr_line,
                    char** mcro_name, mcro_table_p m1, char** line_copy, int line_number);
 /* Increases index to the index of the first non white char in the line (till \n) */
 void clean_white(char* line , int* index);

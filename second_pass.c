@@ -1,3 +1,8 @@
+#include "line_parser.h"
+#include "assembler.h"
+#include "pre_assembler.h"
+#include "first_pass.h"
+#include "help_functions.h"
 #include "second_pass.h"
 
 typedef struct binary_table {
@@ -214,7 +219,7 @@ int inst_coding_type(line_data **ld_arr[] , int line_number)
         return reg_label;
     else if((*ld_arr)[line_number]->inst->op_args_type->src == reg && (*ld_arr)[line_number]->inst->op_args_type->dest == reg)
         return reg_reg;
-    else printg("Error, wrong coding way.\n");
+    else printf("Error, wrong coding way.\n");
     return -1;
 }
 

@@ -1,4 +1,8 @@
+#ifndef ASSEMBLER_OPENU_PROJECT_SECOND_PASS_H
+#define ASSEMBLER_OPENU_PROJECT_SECOND_PASS_H
+
 #include "first_pass.h"
+
 #define MEMORY_START_ADDRESS 100
 #define MEMORY_MAX_ADDRESS 1023
 #define BINARY_LENGTH 12
@@ -28,3 +32,4 @@ void free_binary_table(binary_table_p b1 , int lines_count);
 void entries_and_externals_file(label_object **symbol_table[], int* st_size);
 int inst_coding_type(line_data **ld_arr[] , int line_number);
 void inst_binary_insert(coding_type type , int* binary_line , line_data **ld_arr[]);
+#endif

@@ -2,8 +2,8 @@
 
 #ifndef ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
 #define ASSEMBLER_OPENU_PROJECT_LINE_PARSER_H
-#include "help_functions.h"
 
+#include "help_functions.h"
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>

@@ -1,6 +1,6 @@
 /*Created by elifu on 02/08/2023.*/
-
 #include "line_parser.h"
+
 
 char* inst_Arr[16] = {"mov","cmp","add","sub","not","clr","lea","inc",
                       "dec","jmp","bne","red","prn","jsr","rts","stop"};
