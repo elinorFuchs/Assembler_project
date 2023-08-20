@@ -32,4 +32,3 @@ bool first_pass (FILE* am, label_object** symbol_table[],int* st_size, int* capa
 void add_to_symbol_table(label_object *label, label_object ***symbol_table, int *size, int *capacity);
 void resize_symbol_table(label_object ***symbol_arr, int* capacity) ;
 void resize_ld_arr(line_data*** arr, int* capacity);
-#endif /*ASSEMBLER_OPENU_PROJECT_FIRST_PASS_H*/

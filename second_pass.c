@@ -1,8 +1,4 @@
-#include "line_parser.h"
-#include "assembler.h"
-#include "pre_assembler.h"
-#include "first_pass.h"
-#include "help_functions.h"
+
 #include "second_pass.h"
 
 typedef struct binary_table {
