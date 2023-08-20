@@ -1,7 +1,4 @@
-#ifndef HELP_FUNCTIONS_H
-#define HELP_FUNCTIONS_H
 #include "line_parser.h"
-
 
 #define MAX_GET_LEN 100
 #define MAX_LINE_LEN 82
@@ -50,5 +47,3 @@ void mcro_table_line_increase(mcro_table_p m1);
 void free_mcro_table(mcro_table_p m1);
 mcro_table_p create_mcro_table();
 int is_all_white(char* line);
-
-#endif
