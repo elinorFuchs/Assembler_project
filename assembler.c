@@ -1,16 +1,8 @@
 /*Created by elifu on 02/08/2023.*/
 
 #include "assembler.h"
-#include "line_parser.h"
-#include "first_pass.h"
-#include "help_functions.h"
-
-#include <stdio.h>
-
 
 int main(int argc, char* argv[]){/*לעשות פונקציה שמחזירה מצביע לקובץ ומקבלת את הפרמטרים של fopen ואת הסיומת*/
-
-
 
     FILE* am;
     int capacity  = INITIAL_SIZE;
