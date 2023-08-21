@@ -4,6 +4,11 @@
 #define MEMORY_START_ADDRESS 100
 #define MEMORY_MAX_ADDRESS 1023
 #define BINARY_LENGTH 12
+#define ADDRESS_TYPES 13
+#define ERROR -1
+#define OPCODE_INDEX 3
+#define DEST_INDEX 7
+#define A_R_E_INDEX 10
 
 typedef struct binary_table* binary_table_p;
 
@@ -28,5 +33,4 @@ binary_table_p new_binary_table(int lines_count , int start_address);
 void intToTwosComplement(int num, int* binary_line);
 void free_binary_table(binary_table_p b1 , int lines_count);
 void entries_and_externals_file(label_object **symbol_table[], int* st_size , char* file_name);
-int inst_coding_type(line_data **ld_arr[] , int line_number);
-void inst_binary_insert(coding_type type , int* binary_line , line_data **ld_arr[]);
+int inst_coding_type(line_data **ld_arr[] , int line_number , int* binary_line);

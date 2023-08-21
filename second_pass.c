@@ -7,6 +7,38 @@ typedef struct binary_table {
     int start_address;
 } binary_table;
 
+int opcode_arr[16][4] = {
+    {0,0,0,0},
+    {0,0,0,1},
+    {0,0,1,0},
+    {0,0,1,1},
+    {0,1,0,0},
+    {0,1,0,1},
+    {0,1,1,0},
+    {0,1,1,1},
+    {1,0,0,0},
+    {1,0,0,1},
+    {1,0,1,0},
+    {1,0,1,1},
+    {1,1,0,0},
+    {1,1,0,1},
+    {1,1,1,0},
+    {1,1,1,1}
+};
+
+int coding_type_arr[4][3] = {
+    {0,0,0},
+    {0,0,1},
+    {0,1,1},
+    {1,0,1}
+};
+
+int A_R_E_arr[4][3] = {
+    {0,0},
+    {0,1},
+    {1,0}
+};
+
 binary_table_p new_binary_table(int lines_count , int start_address) {
     int i;
     binary_table_p b1;
@@ -41,7 +73,7 @@ int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr
     binary_table_p direction_binary_table = new_binary_table(*dc , *ic); 
     /* needed to add last line to the loop!!!!! */
     for (i = 0; i < lines_count + 1 ; i++){
-	    printf("number: %d\n" , i + 1);
+	    printf("___________\nLine number: %d\n" , i + 1);
         if ((*ld_arr)[i]->is_direction) {
 	        printf("direction type: %d\n" , (*ld_arr)[i]->dir->d_type);
             switch ((*ld_arr)[i]->dir->d_type) {
@@ -86,7 +118,8 @@ int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr
             }
         }    
         else if ((*ld_arr)[i]->is_instruction){
-            printf("Coding type: %d\n" , inst_coding_type(ld_arr , i));
+            inst_coding_type(ld_arr , i , instruction_binary_table->lines_as_binary[*(instruction_binary_table->curr_index)]);
+            (*instruction_binary_table->curr_index)++;
         }
 	    else if (!(*ld_arr)[i]->is_direction && !(*ld_arr)[i]->is_instruction)
 		    printf("error: NOR type\n");
@@ -166,69 +199,41 @@ else printf("Here Regular: %s\n" , (*symbol_table)[i]->label_name);
     free_or_close(2 , 2 , ent_fptr , ext_fptr);
 }
 
-int inst_coding_type(line_data **ld_arr[] , int line_number)
+int inst_coding_type(line_data **ld_arr[] , int line_number , int* binary_line)
 {
-    if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == none)
-        return non_non;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
-        return non_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
-        return non_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == none && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
-        return non_reg;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
-        return imm_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
-        return imm_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == immediate && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
-        return imm_reg;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == label && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
-        return label_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == label && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
-        return label_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == label && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
-        return label_reg;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == reg && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == immediate)
-        return reg_imm;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == reg && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == label)
-        return reg_label;
-    else if((*ld_arr)[line_number]->inst->op_args_type->src[0] == reg && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == reg)
-        return reg_reg;
-    else printf("Error, wrong coding way.\n");
-    return -1;
+    int type[3][13] =
+         {{none    , none      , none      , none    , immediate , immediate , immediate , label     , label         , label     , reg       , reg       , reg} , \
+          {none    , immediate , label     , reg     , immediate , label     , reg       , immediate , label         , reg       , immediate , label     , reg} , \
+          {non_non , non_imm   , non_label , non_reg , imm_imm   , imm_label , imm_reg   , label_imm , label_label   , label_reg , reg_imm   , reg_label , reg_reg}};
+    int i , j , coding_type , adjust_src_index , adjust_dst_index , opcode_number;
+
+    coding_type = ERROR;
+    /*change it to method of first line - afik*/
+    for(i = 0 ; i < ADDRESS_TYPES ; i++){
+        if((*ld_arr)[line_number]->inst->op_args_type->src[0] == type[0][i] && (*ld_arr)[line_number]->inst->op_args_type->dest[0] == type[1][i]) {
+            coding_type = type[2][i];
+            printf("Coding type: %d\n" , i);
+            opcode_number = (*ld_arr)[line_number]->inst->op_args_type->code;
+            adjust_src_index = (type[0][i] + 1) / 2;
+            adjust_dst_index = (type[1][i] + 1) / 2;
+            for(j = 0 ; j < OPCODE_INDEX ; j++)
+                binary_line[j] = coding_type_arr[adjust_src_index][j];
+            for(j = OPCODE_INDEX ; j < DEST_INDEX ; j++)
+                binary_line[j] = opcode_arr[opcode_number][j - OPCODE_INDEX];
+            for(j = DEST_INDEX ; j < A_R_E_INDEX ; j++)
+                binary_line[j] = coding_type_arr[adjust_dst_index][j - DEST_INDEX];
+            binary_line[BINARY_LENGTH - 2] = binary_line[BINARY_LENGTH - 1] = 0;
+            break;
+        }
+    }
+    if(coding_type == ERROR)
+        printf("Error, wrong coding way.\n");
+    else {
+        printf("Binary first line: ");
+        for(i = 0 ; i < BINARY_LENGTH ; i++)
+            printf("%d" , binary_line[i]);
+        printf("\n");
+    }
+    return coding_type;
 }
 
-void inst_binary_insert(coding_type type , int* binary_line , line_data **ld_arr[])
-{
-    switch(type) {
-    case non_non:
-        break;
-    case non_imm:
-        break;
-    case non_label:
-        break;
-    case non_reg:
-        break;
-    case imm_imm:
-        break;
-    case imm_label:
-        break;
-    case imm_reg:
-        break;
-    case label_imm:
-        break;
-    case label_label:
-        break;
-    case label_reg:
-        break;
-    case reg_imm:
-        break;
-    case reg_label:
-        break;
-    case reg_reg:
-        break;
-    default:
-        printf("Error: wrong coding type/\n");
-        break;
-    }
-}
