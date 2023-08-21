@@ -77,7 +77,7 @@ line_data* create_line_data(char *line) {
                     set_entry_labels(ld, args);/*put the args in string arr */
                     if (ld->dir->d_content->en_arr->entry == NULL)
                         ld->ei = NO_CONTENT_DIRECTION;
-                } else {
+                } else if(d_t == d_extern) {
                     ld->dir->d_type = d_extern;
                     set_extern_labels(ld, args);/*put the args in string arr */
                     if (ld->dir->d_content->ex_arr->extern_ == NULL)

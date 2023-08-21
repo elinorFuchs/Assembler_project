@@ -29,7 +29,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     char line[MAX_LINE_SIZE];
     int i = 0;
     int line_num = 1;
-    line_data* ld;
+    line_data* ld = NULL;
     while (fgets(line, MAX_LINE_SIZE, am)) {/*put each line as a struct in the line_data array*/
         ld = create_line_data(line);
         (*ld_arr)[i] = ld;
@@ -68,6 +68,7 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
 
 bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity, int *ic, int *dc) {
     int i;
+    **symbol_table = (label_object*)safe_malloc(*capacity * sizeof(label_object));
     for (i = 0; i <= ld_arr_size; i++) {
         if (ld_arr[i]->ei != SUCCESS) {
             return false;/*if there is an error, label table isn't necessary*/

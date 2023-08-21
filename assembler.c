@@ -3,17 +3,17 @@
 #include "assembler.h"
 
 int main(int argc, char* argv[]) {
-
-    FILE *am;
-    int capacity = INITIAL_SIZE;
-    int ld_arr_size = capacity;
-    int st_size = 0;
     int i;
-    char *as_suffix = ".as";
-    char *am_suffix = ".am";
-    char *as_file_path;
 
     for (i = 1; i < argc; i++) {
+
+        FILE *am;
+        int capacity = INITIAL_SIZE;
+        int ld_arr_size = capacity;
+        int st_size = 0;
+        char *as_suffix = ".as";
+        char *am_suffix = ".am";
+        char *as_file_path;
         int ic = 100, dc = 0;
         line_data** ld_arr = NULL;
         label_object** symbol_table = NULL;
@@ -28,13 +28,14 @@ int main(int argc, char* argv[]) {
         as_file_path = path_string(argv[i], as_suffix);
         pre_as(as_file_path);
         am = safe_fopen(argv[i], "r", am_suffix);
+
         first_pass(am, &symbol_table, &st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc);
         second_pass(&symbol_table, &st_size, &ld_arr, &ic, &dc, ld_arr_size , argv[i]);
         fclose(am);
         free_ld_structs(ld_arr, ld_arr_size);
-        safe_free((void**) symbol_table);
+        safe_free((void**) &symbol_table);
         symbol_table = NULL;
-        safe_free((void**) ld_arr);
+        safe_free((void**) &ld_arr);
         ld_arr = NULL;
 
 
