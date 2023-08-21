@@ -185,21 +185,21 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
     strcpy(string_line,&temp_line[*index]);/*index is pointing to after .string*/
     ld->dir->d_content->string->str_len = 0;
 
-    if(is_valid_string(string_line, ld)){/*include error message if not, search for quotes*/
-        args = copy_s_args(string_line);/*skip spaces in the beginning, find quote, copy till the ending quote:*/
+    if(is_valid_string(string_line, ld)){
+        args = copy_s_args(string_line);/*find quote, copy till the ending quote:*/
 
-        strcpy(ld->dir->d_content->string->string, args);/*put the .string argument in line_data struct*/
+        strcpy(ld->dir->d_content->string->string, args);/*put the string argument in line_data struct*/
         ld->dir->d_content->string->str_len = strlen(args);
         ld->dir->dir_line_keeper = strlen(args)+1;
         safe_free((void**)&args);
    }
 
     else {/*not a valid string*/
-        /*safe_free((void**)&args);*/
-       /* safe_free((void**)&string_line);*/
+        safe_free((void**)&args);
+        safe_free((void**)&string_line);
         return false;
     }
-
+    safe_free((void**)&args);
     safe_free((void**)&string_line);
     return true;
 }
