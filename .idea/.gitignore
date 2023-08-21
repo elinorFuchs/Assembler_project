@@ -1,4 +1,7 @@
 # Default ignored files
+/delete/
+/delete_all/
+/ma_kore.as/
 /shelf/
 /workspace.xml
 # Editor-based HTTP Client requests
