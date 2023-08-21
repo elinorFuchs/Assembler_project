@@ -1,5 +1,5 @@
 MAIN: mov @r1,@r2
-LOOP: cmp -5,@r3
+LOOP: cmp -5, @r3
 bne ENDLOOP
 add @r4,R0
 .entry START ,		 EXT5./
