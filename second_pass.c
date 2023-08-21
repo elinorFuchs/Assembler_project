@@ -2,7 +2,7 @@
 #include "second_pass.h"
 
 typedef struct binary_table {
-    int **lines_as_binary;
+    int **lines_as_binary; /*check*/
     int *curr_index;
     int start_address;
 } binary_table;
