@@ -159,7 +159,7 @@ int pre_as(char* path) {
     fptr = fopen(path , "r");
     fptr2 = fopen(am_file_name , "w");
     m1 = create_mcro_table();
-    curr_line = malloc(sizeof(char) * MAX_LINE_LEN);
+    curr_line = malloc(sizeof(char) * MAX_GET_LEN);
     
     if(is_null_file(fptr , fptr2 , &path ,  &am_file_name)) {
         free_or_close(1 , 1 , curr_line);
