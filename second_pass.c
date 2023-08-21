@@ -189,7 +189,7 @@ printf("Here extern: %s\n" , (*symbol_table)[i]->label_name);
                 fputs((*symbol_table)[i]->label_name , ext_fptr);
                 fputs("\n" , ext_fptr);
             }
-else printf("Here Regular: %s\n" , (*symbol_table)[i]->label_name);
+else printf("Here Regular: %s \n" , (*symbol_table)[i]->label_name);
         }
     }
     if(first != NULL)
