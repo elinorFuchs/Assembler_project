@@ -158,7 +158,6 @@ void add_to_symbol_table(label_object *label, label_object ***symbol_table, int 
 
 int search_label(char* label_name, label_object *symbol_table[], int s_table_size){
     int i;
-    /*label_object* which_label;*/
     for(i = 0; i < s_table_size; i++){
         if(strcmp(symbol_table[i]->label_name,label_name) == 0){
             if(symbol_table[i]->is_entry == true){

@@ -32,3 +32,8 @@
 12	589	7143039705057145	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	1f4dbe0aebdca051
 2	597	7143039705137555	CMakeFiles/Assembler_OpenU_project.dir/line_parser.c.obj	d98f206aae6d892f
 597	943	7143039708562183	Assembler_OpenU_project.exe	d005cc29432c9f0
+7	85	7143054701595107	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	1f4dbe0aebdca051
+2	92	7143054701672548	CMakeFiles/Assembler_OpenU_project.dir/first_pass.c.obj	7226c53b1885f3aa
+92	190	7143054702608041	Assembler_OpenU_project.exe	d005cc29432c9f0
+1	75	7143058635604113	CMakeFiles/Assembler_OpenU_project.dir/assembler.c.obj	1f4dbe0aebdca051
+76	168	7143058636474010	Assembler_OpenU_project.exe	d005cc29432c9f0
