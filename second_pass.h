@@ -38,3 +38,5 @@ void free_binary_table(binary_table_p b1 , int lines_count);
 void entries_and_externals_file(label_object **symbol_table[], int* st_size , char* file_name);
 int inst_coding_type(line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size);
 bool delete_null_file(char* path);
+void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size , int s_type , int d_type , int code_type);
+
