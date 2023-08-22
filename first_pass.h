@@ -3,6 +3,7 @@
 #include "pre_assembler.h"
 
 #define INITIAL_SIZE 10
+#define ERROR_VAL -1
 
 
 enum label_type{
@@ -44,3 +45,5 @@ void add_to_symbol_table(label_object *label, label_object ***symbol_table, int 
 /*realloc to the line_data array and the symbol table*/
 void resize_symbol_table(label_object ***symbol_arr, int* capacity) ;
 void resize_ld_arr(line_data*** arr, int* capacity);
+int label_value_search(char* label_name, label_object *symbol_table[], int s_table_size , bool* is_extern);
+
