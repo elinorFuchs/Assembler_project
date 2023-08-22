@@ -351,11 +351,16 @@ bool delete_null_file(char* path){
     deleted = false;
 
     fptr = fopen(path , "r");
+    if(fptr == NULL) {  
+        printf("couldn't open file %s" , path);
+        return deleted;
+    }
     empty_file = fgetc(fptr);
     if(empty_file == EOF){
         remove(path);
         deleted = true;
     }
+    fclose(fptr);
     return deleted;  
 }
 
