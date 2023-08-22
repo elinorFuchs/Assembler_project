@@ -27,7 +27,7 @@ char* errors[] = {"", "Error: Invalid first word.\n","Error: Invalid data name.\
 };
 bool
 first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity, line_data **ld_arr[], int *ld_arr_size,
-           int *ic, int *dc, line_data *ld) {
+           int *ic, int *dc, line_data *ld, label_object *new_label) {
     char line[MAX_LINE_SIZE];
     int i = 0;
     int line_num = 1;
@@ -52,7 +52,7 @@ first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity,
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i-1;
 
-    if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic, dc)) {/*creating the symbol table of the file*/
+    if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic, dc, new_label)) {/*creating the symbol table of the file*/
         int k;
         for (k = 0; k < *st_size; ++k) {
             if((*symbol_table)[k]->is_data){
@@ -65,9 +65,10 @@ first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity,
     }
 }
 
-bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity, int *ic, int *dc) {
+bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int* st_size, int* capacity,
+                    int* ic, int* dc, label_object* new_label) {
     int i;
-    **symbol_table = (label_object*)safe_malloc(*capacity * sizeof(label_object));
+    /***symbol_table = (label_object*)safe_malloc(*capacity * sizeof(label_object));*/
     for (i = 0; i <= ld_arr_size; i++) {
         if (ld_arr[i]->ei != SUCCESS) {
             return false;/*if there is an error, label table isn't necessary*/
@@ -75,7 +76,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
        if (ld_arr[i]->is_label_def){
             /*there is a label definition in the line*/
             if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -3){/*label not already in the table - definition is valid.*/
-                label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
+                new_label = (label_object *) safe_calloc(1, sizeof(label_object));
                 if (ld_arr[i]->is_instruction) {
                     strcpy(new_label->label_name, ld_arr[i]->label_name);
                     new_label->is_code = true;
@@ -115,7 +116,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                 if (ld_arr[i]->dir->d_type == d_entry) {/*add loop*/
                     int k, en_arr_size = ld_arr[i]->dir->d_content->en_arr->en_size;
                     for (k = 0; k < en_arr_size; ++k) {
-                        label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
+                        new_label = (label_object *) safe_calloc(1, sizeof(label_object));
                         strcpy(new_label->label_name, ld_arr[i]->dir->d_content->en_arr->entry[k]);
                         new_label->is_entry = true;
                         new_label->label_value = -1;/*-1 is entry label temp val*/
@@ -126,7 +127,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                 else if (ld_arr[i]->dir->d_type == d_extern) {
                     int j, ex_arr_size = ld_arr[i]->dir->d_content->ex_arr->ex_size;
                     for (j = 0; j < ex_arr_size; ++j) {
-                        label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
+                        new_label = (label_object *) safe_calloc(1, sizeof(label_object));
                         new_label->type = external;
                         new_label->is_extern = true;
                         strcpy(new_label->label_name, ld_arr[i]->dir->d_content->ex_arr->extern_[j]);
@@ -143,6 +144,8 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
             }
         }/*end of - not label def*/
     }/*end of for loop*/
+    /*resize symbol table to the true size*/
+    *symbol_table = (label_object **) realloc(*symbol_table, *st_size * sizeof(label_object *));
     return true;
 }
 

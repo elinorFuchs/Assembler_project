@@ -3,7 +3,7 @@
 #include "assembler.h"
 
 int main(int argc, char* argv[]) {
-    int i;
+    int i , j;
 
     for (i = 1; i < argc; i++) {
 
@@ -18,9 +18,10 @@ int main(int argc, char* argv[]) {
 
         int ic = 100, dc = 0;
         line_data* ld = NULL;
+        label_object* new_label = NULL;
         line_data** ld_arr = NULL;
         label_object** symbol_table = NULL;
-        symbol_table = (label_object **) safe_calloc(capacity, sizeof(label_object *));
+        symbol_table = (label_object **) safe_calloc(capacity, sizeof(label_object*));
         ld_arr = (line_data **) safe_malloc((ld_arr_size) * sizeof(line_data *));
 
         if (strlen(argv[i]) > FILE_NAME) {
@@ -30,14 +31,24 @@ int main(int argc, char* argv[]) {
 
         as_file_path = path_string(argv[i], as_suffix);
         pre_as(as_file_path);
+        safe_free(as_file_path);
         am = safe_fopen(argv[i], "r", am_suffix);
 
-        first_pass(am, &symbol_table, &st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc, ld);
+        first_pass(am, &symbol_table, &st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc, ld, new_label);
         second_pass(&symbol_table, &st_size, &ld_arr, &ic, &dc, ld_arr_size , argv[i]);
         fclose(am);
         free_ld_structs(ld_arr, ld_arr_size);
+
+        for (j = 0; j < st_size ; ++j) {
+            safe_free(symbol_table[j]);
+        }
+
         safe_free_double_p((void **) &symbol_table);
         symbol_table = NULL;
+        free(symbol_table);
+        safe_free_double_p((void **) &new_label);
+        new_label = NULL;
+
         safe_free_double_p((void **) &ld_arr);
         ld_arr = NULL;
         safe_free_double_p((void **) &ld);
@@ -87,7 +98,6 @@ void free_ld_structs(line_data **ld_arr, int ld_arr_size) {
             ld_arr[i] = NULL;
 
         }
-        /*free(ld_arr[i]);*/
+
     }
-    return;
 }

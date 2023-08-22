@@ -28,11 +28,13 @@ typedef struct {
  * create a line_data array that hold all the lines info, and a symbol table for the second pass*/
 bool
 first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity, line_data **ld_arr[], int *ld_arr_size,
-           int *ic, int *dc, line_data *ld);
+           int *ic, int *dc, line_data *ld, label_object *new_label);
 
 /*get pointer to the line data array, pointer to the symbol table. add labels from lines data to the symbol table.
  * return false if there is double declaration of a label or if there is an error in one of the lines in the file*/
-bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity, int *ic, int *dc);
+bool
+create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **symbol_table[], int *st_size, int *capacity,
+                    int *ic, int *dc, label_object *new_label);
 
 /*search a label name string in the symbol table, if found : if it's an entry return the index to update label value,
  * if it's extern or double definition return -2, if not exist in the table return -3*/

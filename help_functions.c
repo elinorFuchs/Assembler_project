@@ -13,6 +13,7 @@ FILE* safe_fopen (const char *filename, const char *mode, char* suffix){
     fptr = fopen(new_file_name,mode);
     if (fptr == NULL)
         perror("error");
+    safe_free(new_file_name);
     return fptr;
 }
 char* path_string (const char *filename,char* suffix){
