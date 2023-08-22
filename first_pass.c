@@ -157,6 +157,19 @@ void add_to_symbol_table(label_object *label, label_object ***symbol_table, int 
     (*size)++;
 }
 
+int label_value_search(char* label_name, label_object *symbol_table[], int s_table_size , bool* is_extern){
+    int i , value;
+    value = ERROR_VAL;
+    for(i = 0; i < s_table_size; i++)
+        if(strcmp(symbol_table[i]->label_name,label_name) == 0) {
+            value = symbol_table[i]->label_value;
+            *is_extern = symbol_table[i]->is_extern;
+            printf("label value %s is: %d\n" , symbol_table[i]->label_name , symbol_table[i]->label_value);
+            break;
+        }
+    return value;
+}
+
 int search_label(char* label_name, label_object *symbol_table[], int s_table_size){
     int i;
     for(i = 0; i < s_table_size; i++){
