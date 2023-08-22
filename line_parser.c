@@ -25,10 +25,9 @@ op_args_mthd op_args_arr [16] = {
         };
 /*add comment if empty line or comment line am file already deleted it.*/
 
-line_data* create_line_data(char *line) {
+line_data *create_line_data(char *line, line_data *ld) {
 
-    line_data* ld = (line_data* )safe_malloc(sizeof(line_data));
-    *ld = (line_data){0};
+
     int index =0;
     char* word;
     char temp_line[MAX_LINE_SIZE];
@@ -191,16 +190,16 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
         strcpy(ld->dir->d_content->string->string, args);/*put the string argument in line_data struct*/
         ld->dir->d_content->string->str_len = strlen(args);
         ld->dir->dir_line_keeper = strlen(args)+1;
-        safe_free((void**)&args);
+        safe_free_double_p((void **) &args);
    }
 
     else {/*not a valid string*/
-        safe_free((void**)&args);
-        safe_free((void**)&string_line);
+        safe_free_double_p((void **) &args);
+        safe_free_double_p((void **) &string_line);
         return false;
     }
-    safe_free((void**)&args);
-    safe_free((void**)&string_line);
+    safe_free_double_p((void **) &args);
+    safe_free_double_p((void **) &string_line);
     return true;
 }
 
@@ -282,12 +281,12 @@ bool set_op_args(char* data_args, line_data* ld) {
         return true;
     }
     else if (!(is_inst_arg_valid(first_arg, ld))) {
-       /* ld->ei = INVALID_INST_ARGS;*/
+       ld->ei = INVALID_INST_ARGS;
         return false;
     }
     if (second_arg != NULL) {
         if (!(is_inst_arg_valid(second_arg, ld))) {
-            /*ld->ei = INVALID_INST_ARGS;*/
+            ld->ei = INVALID_INST_ARGS;
             return false;
         }
         set_src_add(first_arg, ld);
@@ -304,8 +303,9 @@ bool set_op_args(char* data_args, line_data* ld) {
 
         if (is_register(argument, ld) || is_label(argument, ld) || is_immediate(argument, ld))
             return true;
-        else
+        else {
             return false;
+        }
     }
 
     void set_src_add(char *arg, line_data *ld) {
@@ -604,6 +604,9 @@ void set_entry_labels(line_data* ld, char* args){
         
         count = args_counter(args);
         entry_label_arr = (char**)safe_malloc(count*(sizeof (char*)));
+        ld->dir->d_content->en_arr = (entry_arr*) safe_malloc(sizeof(entry_arr));
+        ld->dir->d_content->en_arr->entry = NULL;
+        ld->dir->d_content->en_arr->en_size = 0;
 
         for (i = 0, k = 0; i < count; i++) {
             skip_spaces(&k,args);
@@ -615,7 +618,16 @@ void set_entry_labels(line_data* ld, char* args){
             if(is_label(label_name, ld)) {
                 entry_label_arr[i] = (char*)safe_malloc(strlen((label_name))+1);
                 strcpy(entry_label_arr[i], label_name);
-            } /*else error*/
+            }
+            else {
+                ld->ei = INVALID_LABEL_NAME;
+                safe_free(label_name);
+                for (k = 0; k < i; k++) {
+                    safe_free(entry_label_arr[k]);
+                }
+                safe_free(entry_label_arr);
+                return;
+            }
         }
         ld->dir->d_content->en_arr = (entry_arr*) safe_malloc(sizeof(entry_arr));
         ld->dir->d_content->en_arr->entry = (char**)safe_malloc(count * sizeof(char*));
@@ -625,18 +637,18 @@ void set_entry_labels(line_data* ld, char* args){
             strcpy(ld->dir->d_content->en_arr->entry[i], entry_label_arr[i]);
         }
         ld->dir->d_content->en_arr->en_size = count;
-        /*DEBUG PRINT*/
-        for (i = 0; i < count; i++) {
-            printf(" ENTRIES are: %s \n", ld->dir->d_content->en_arr->entry[i]);
-        }
-        free(entry_label_arr);
-        return;
+
+        safe_free(label_name);
+        for (i = 0, k = 0; i < count; i++) {
+        safe_free(entry_label_arr[i]);
+         }
+         safe_free(entry_label_arr);
+
 }
  void set_extern_labels(line_data * ld, char* args){
      int count, i, k;
      char* extrn_name;
      char** e_arr;
-
      count = args_counter(args);
      e_arr = (char**)safe_malloc(count*(sizeof (char*)));
 
@@ -650,23 +662,31 @@ void set_entry_labels(line_data* ld, char* args){
          if(is_label(extrn_name, ld)) {
              e_arr[i] = (char*)safe_malloc(strlen((extrn_name))+1);
              strcpy(e_arr[i], extrn_name);
-         } else
+
+         } else {
+             ld->ei = INVALID_LABEL_NAME;
+             safe_free(extrn_name);
+             for (k = 0; k < i; k++) {
+                 safe_free(e_arr[k]);
+             }
+             safe_free(e_arr);
              return;
+         }
      }
-     ld->dir->d_content->ex_arr = (extern_arr *) safe_malloc(sizeof(extern_arr ));
+     ld->dir->d_content->ex_arr = (extern_arr *) safe_malloc(sizeof(extern_arr));
      ld->dir->d_content->ex_arr->extern_ = (char**)safe_malloc(count * sizeof(char*));
      for (i = 0; i < count; i++) {
          ld->dir->d_content->ex_arr->extern_[i] = (char*)safe_malloc(strlen(e_arr[i])+1);
          strcpy(ld->dir->d_content->ex_arr->extern_[i], e_arr[i]);
      }
-     /*DEBUG PRINT*/
-     for (i = 0; i < count; i++) {
-         printf("%s \n", ld->dir->d_content->ex_arr->extern_[i]);
-     }
-     ld->dir->d_content->ex_arr->ex_size = count;
 
-     free(e_arr);
-     return;
+     ld->dir->d_content->ex_arr->ex_size = count;
+     safe_free(extrn_name);
+     for (i = 0, k = 0; i < count; i++) {
+         safe_free(e_arr[i]);
+     }
+     safe_free(e_arr);
+
  }
 bool is_commas_valid(char* args, line_data * ld) {
 

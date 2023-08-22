@@ -128,7 +128,7 @@ typedef struct line_data{
 
 /*function declarations*/
 /*get a line string, validate the line syntax and return a structure that hold the line information for the second pass */
-line_data* create_line_data(char *line);
+line_data *create_line_data(char *line, line_data *ld);
 
 bool is_direction (char* word, line_data* ld);
 bool is_args_as_expected(op_args_mthd* op_args_to_validate);

@@ -121,18 +121,20 @@ void resize_int_arr(int** arr, int* size) {
     *arr = temp_arr;
 }
 
-void safe_free(void **ptr) {
+void safe_free_double_p(void **ptr) {
     if (ptr != NULL && *ptr != NULL) {
         free(*ptr);
         *ptr = NULL;
     }
 }
-void safe_free_ld(void **ptr) {
-    if (ptr != NULL && *ptr != NULL) {
-        free(*ptr);
-        *ptr = NULL;
+
+void safe_free(void *ptr) {
+    if (ptr != NULL) {
+        free(ptr);
+        ptr = NULL;
     }
 }
+
 
 
 

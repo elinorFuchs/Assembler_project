@@ -25,13 +25,16 @@ char* errors[] = {"", "Error: Invalid first word.\n","Error: Invalid data name.\
                   "Error: Invalid label name (characters should be digits or alphabets.\n",
                   "Error: Immediate number range should be -512 to 511.\n"
 };
-bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* capacity, line_data** ld_arr[], int* ld_arr_size, int* ic, int* dc) {
+bool
+first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity, line_data **ld_arr[], int *ld_arr_size,
+           int *ic, int *dc, line_data *ld) {
     char line[MAX_LINE_SIZE];
     int i = 0;
     int line_num = 1;
-    line_data* ld = NULL;
+
     while (fgets(line, MAX_LINE_SIZE, am)) {/*put each line as a struct in the line_data array*/
-        ld = create_line_data(line);
+        ld = (line_data* )safe_calloc(1,sizeof (line_data));
+        ld = create_line_data(line, ld);
         (*ld_arr)[i] = ld;
 
         if (ld->ei != SUCCESS) {
@@ -48,17 +51,13 @@ bool first_pass (FILE* am, label_object** symbol_table[], int* st_size, int* cap
     }
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i-1;
-    /*safe_free((void**)&ld);*/
 
-    if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic,dc)) {/*creating the symbol table of the file*/
+    if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic, dc)) {/*creating the symbol table of the file*/
         int k;
         for (k = 0; k < *st_size; ++k) {
             if((*symbol_table)[k]->is_data){
                 (*symbol_table)[k]->label_value += *ic;
             }
-            printf("label name is: %s\n ", (*symbol_table)[k]->label_name);
-
-            printf("VALUE IS: %d\n ", (*symbol_table)[k]->label_value);
         }
         return true;
     } else {
@@ -75,7 +74,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
         }
        if (ld_arr[i]->is_label_def){
             /*there is a label definition in the line*/
-            if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -3){/*label isn't already exist - definition is valid. add to table*/
+            if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -3){/*label not already in the table - definition is valid.*/
                 label_object *new_label = (label_object *) safe_calloc(1, sizeof(label_object));
                 if (ld_arr[i]->is_instruction) {
                     strcpy(new_label->label_name, ld_arr[i]->label_name);
@@ -93,22 +92,22 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                 }
                 add_to_symbol_table(new_label, symbol_table, st_size, capacity);
             }/*end if - label isn't in the label table*/
-            else if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) != -3) {
-                        int s_table_index = (search_label((ld_arr[i]->label_name), *symbol_table, *st_size));
-                        if((*symbol_table)[s_table_index]->is_entry) {/*entry label- update val*/
-                            if (ld_arr[i]->is_instruction) {
-                                (*symbol_table)[s_table_index]->is_code = true;
-                                (*symbol_table)[s_table_index]->label_value = *ic;/*change val from -1 to the ic*/
-                                *ic += ld_arr[i]->inst->inst_line_keeper;
-                            } else if (ld_arr[i]->is_direction) {
-                                (*symbol_table)[s_table_index]->is_data = true;
-                                (*symbol_table)[s_table_index]->label_value = *dc;/*change val from -1 to the dc*/
-                                *dc += ld_arr[i]->dir->dir_line_keeper;
-                            }
-                        }
-                        }/*end if - entry label*/
-                        else if(search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -2){/*double label definition*/
-                        return false;
+            else if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) >= 0) {
+                int s_table_index = (search_label((ld_arr[i]->label_name), *symbol_table, *st_size));
+                if((*symbol_table)[s_table_index]->is_entry) {/*entry label- update val*/
+                    if (ld_arr[i]->is_instruction) {
+                        (*symbol_table)[s_table_index]->is_code = true;
+                        (*symbol_table)[s_table_index]->label_value = *ic;/*change val from -1 to the ic*/
+                        *ic += ld_arr[i]->inst->inst_line_keeper;
+                    } else if (ld_arr[i]->is_direction) {
+                        (*symbol_table)[s_table_index]->is_data = true;
+                        (*symbol_table)[s_table_index]->label_value = *dc;/*change val from -1 to the dc*/
+                        *dc += ld_arr[i]->dir->dir_line_keeper;
+                    }
+                }
+            }/*end if - entry label*/
+            else if(search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -2){/*double label definition, or definition of extern label*/
+                return false;
             }
        }
         else {/*not a label definition*/
@@ -155,8 +154,6 @@ void add_to_symbol_table(label_object *label, label_object ***symbol_table, int 
     (*size)++;
 }
 
-
-
 int search_label(char* label_name, label_object *symbol_table[], int s_table_size){
     int i;
     for(i = 0; i < s_table_size; i++){
@@ -165,12 +162,12 @@ int search_label(char* label_name, label_object *symbol_table[], int s_table_siz
                 return i;
             }
             if(symbol_table[i]->type == external){
-               /* printf("Error: extern label can't be defined in the same file.\n");*/
-                return i;
+               printf("Error: extern label: : %s can't be defined in the same file.\n", label_name);
+                return -2;
             }
             else if(symbol_table[i]->type == relocatable){
-                printf("Error: label already defined. name is : %s\n", label_name);
-                return -2;/*already defined label will return -2*/
+                printf("Error: label %s already defined. \n", label_name);
+                return -2;
             }
         }
     }
