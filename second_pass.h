@@ -9,6 +9,9 @@
 #define OPCODE_INDEX 3
 #define DEST_INDEX 7
 #define A_R_E_INDEX 10
+#define SECOND_REG_INDEX 5
+#define REG_NUM_STR_INDEX 2
+#define REG_BINARY_DIGITS 5
 
 typedef struct binary_table* binary_table_p;
 
@@ -30,7 +33,8 @@ typedef enum coding_type{
 
 int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr[], int *ic, int *dc , int lines_count , char* file_name);
 binary_table_p new_binary_table(int lines_count , int start_address);
-void intToTwosComplement(int num, int* binary_line);
+void intToTwosComplement(int num, int* binary_line , int method);
 void free_binary_table(binary_table_p b1 , int lines_count);
 void entries_and_externals_file(label_object **symbol_table[], int* st_size , char* file_name);
-int inst_coding_type(line_data **ld_arr[] , int line_number , int* binary_line);
+int inst_coding_type(line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size);
+bool delete_null_file(char* path);
