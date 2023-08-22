@@ -336,7 +336,8 @@ void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **b
                 printf("\n");
             }
             extra_line_num++;
-            binary_curr_index++;
+	    if(operand_type != none)
+            	binary_curr_index++;
         }
         operand_str = NULL;
     }
