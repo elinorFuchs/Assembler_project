@@ -260,8 +260,6 @@ void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **b
     int j , reg_s_num , reg_d_num , reg_num , first_str_index , operand_type , reg_start_index , imm , label_val , extra_line_num;
     bool *is_extern_label , extra_print;
     char *operand_str;
-    int imm;
-    int label_val;
 
     reg_s_num = reg_d_num = -1;
     is_extern_label = malloc(sizeof(bool));
