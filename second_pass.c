@@ -257,7 +257,7 @@ int inst_coding_type(line_data **ld_arr[] , int line_number , int **binary_line 
 }
 
 void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size , int s_type , int d_type , int code_type){
-    int j , reg_s_num , reg_d_num , reg_num , first_str_index , operand_type , reg_start_index;
+    int j , reg_s_num , reg_d_num , reg_num , first_str_index , operand_type , reg_start_index , imm , label_val , extra_line_num;
     bool *is_extern_label , extra_print;
     char *operand_str;
     int imm;
@@ -280,7 +280,6 @@ void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **b
         printf("\n");
     }
     else if(code_type != non_non) {
-        int extra_line_num;
         extra_line_num = 2;
         while(extra_line_num <= 3){
             first_str_index = 0;
@@ -295,11 +294,11 @@ void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **b
             }
             switch(operand_type) {
                 case immediate:
-                    int imm = string_to_sign_int(operand_str , &first_str_index);
+                    imm = string_to_sign_int(operand_str , &first_str_index);
                     intToTwosComplement(imm , binary_line[binary_curr_index] , 2);
                     break;
                 case label:
-                    int label_val = label_value_search(operand_str , *symbol_table , *st_size , is_extern_label);
+                    label_val = label_value_search(operand_str , *symbol_table , *st_size , is_extern_label);
                     if(label_val != ERROR){
                         intToTwosComplement(label_val , binary_line[binary_curr_index] , 2);
                         if(*is_extern_label){
