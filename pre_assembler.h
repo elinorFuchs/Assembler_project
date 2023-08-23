@@ -3,12 +3,12 @@
 #define MAX_GET_LEN 100
 #define MAX_LINE_LEN 82
 #define MAX_MCRO_NAME 30
-#define MAX_MACROS_NUM 50
+#define START_MAX_MACROS_NUM 3
 #define DIFF_INSTRUCTION_COUNT 15
 #define MCRO_LEN 4
 #define ENDMCRO_LEN 7
 #define END_LINE_CHARS 2
-#define START_MCRO_TABLE_LINES_COUNT 4
+#define START_INSIDE_EACH_MCRO 4
 
 
 typedef struct mcro_table* mcro_table_p;
@@ -43,7 +43,9 @@ int is_white(char c);
 void is_mcro_line(mcro_table_p m1 , char* line , char **inside);
 /*Ensure that it is not instruction name.*/
 bool valid_mcro_name(char* mcro_name);
-void mcro_table_line_increase(mcro_table_p m1);
+void mcro_table_count_increase(mcro_table_p m1);
+void mcro_table_line_increase(mcro_table_p m1 , int index);
 void free_mcro_table(mcro_table_p m1);
 mcro_table_p create_mcro_table();
 int is_all_white(char* line);
+
