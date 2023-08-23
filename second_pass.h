@@ -4,6 +4,9 @@
 #define MEMORY_START_ADDRESS 100
 #define MEMORY_MAX_ADDRESS 1023
 #define BINARY_LENGTH 12
+#define BINARY_LAST_INDEX 11
+#define RIGHT_BINARY_INDEX 6
+#define LEFT_LAST_BINARY_INDEX 5
 #define ADDRESS_TYPES 13
 #define ERROR -1
 #define OPCODE_INDEX 3
@@ -12,6 +15,10 @@
 #define SECOND_REG_INDEX 5
 #define REG_NUM_STR_INDEX 2
 #define REG_BINARY_DIGITS 5
+#define ENT_SUFFIX_LEN 5
+#define EXT_SUFFIX_LEN 5
+#define OB_SUFFIX_LEN 4
+#define BINARY_TABLE_COUNT 2
 
 typedef struct binary_table* binary_table_p;
 
@@ -39,4 +46,6 @@ void entries_and_externals_file(label_object **symbol_table[], int* st_size , ch
 int inst_coding_type(line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size);
 bool delete_null_file(char* path);
 void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size , int s_type , int d_type , int code_type);
+void binary_to_64(int** inst_binary_table , int** dir_binary_table , char* path , int inst_len , int dir_len);
+
 
