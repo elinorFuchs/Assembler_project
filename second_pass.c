@@ -50,6 +50,14 @@ int reg_num_bits[8][5] = {
     {0,0,1,1,1},
 };
 
+char base64_table[64] = {
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
+    };
+
 binary_table_p new_binary_table(int lines_count , int start_address) {
     int i;
     binary_table_p b1;
@@ -76,7 +84,7 @@ void free_binary_table(binary_table_p b1 , int lines_count) {
 
 int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr[], int *ic, int *dc , int lines_count , char* file_name)
 {
-    int i , j , char_as_ascii , data_count , binary_curr;
+    int i , j , char_as_ascii , data_count , binary_curr , inst_len , dir_len;
     printf("binary lines instructions: %d\n" , *ic - MEMORY_START_ADDRESS);
     binary_table_p instruction_binary_table = new_binary_table(*ic - MEMORY_START_ADDRESS , MEMORY_START_ADDRESS);
     printf("binary lines direcctions: %d\n" , *dc);
@@ -137,6 +145,9 @@ int second_pass(label_object **symbol_table[], int* st_size , line_data **ld_arr
 	    else if (!(*ld_arr)[i]->is_direction && !(*ld_arr)[i]->is_instruction)
 		    printf("error: NOR type\n");
     }
+    inst_len = (*instruction_binary_table->curr_index);
+    dir_len = (*direction_binary_table->curr_index);
+    binary_to_64(instruction_binary_table->lines_as_binary , direction_binary_table->lines_as_binary , file_name , inst_len , dir_len);
     entries_and_externals_file(symbol_table, st_size , file_name);
     free_binary_table(instruction_binary_table , *ic - MEMORY_START_ADDRESS);
     if(instruction_binary_table != NULL)
@@ -174,10 +185,10 @@ void intToTwosComplement(int num, int* binary_line , int method)
 void entries_and_externals_file(label_object **symbol_table[], int* st_size , char* file_name)
 {
     int i;
-    char *first = malloc(sizeof(char) * (5 + strlen(file_name))); 
+    char *first = malloc(sizeof(char) * (ENT_SUFFIX_LEN + strlen(file_name))); 
 	strcpy(first , file_name);
 	strcat(first , ".ent");
-    char *second = malloc(sizeof(char) * (5 + strlen(file_name)));
+    char *second = malloc(sizeof(char) * (EXT_SUFFIX_LEN + strlen(file_name)));
     strcpy(second , file_name);
     strcat(second , ".ext");
     FILE *ent_fptr , *ext_fptr;
@@ -336,8 +347,8 @@ void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **b
                 printf("\n");
             }
             extra_line_num++;
-	    if(operand_type != none)
-            	binary_curr_index++;
+            if(operand_type != none)
+                binary_curr_index++;
         }
         operand_str = NULL;
     }
@@ -364,3 +375,55 @@ bool delete_null_file(char* path){
     return deleted;  
 }
 
+void binary_to_64(int** inst_binary_table , int** dir_binary_table , char* path , int inst_len , int dir_len){
+    FILE* fptr;
+    char *binary_file_name;
+    int i , j , left , right , curr_len , **curr_table , time;
+    char left_char , right_char;
+
+    binary_file_name = safe_malloc(sizeof(char) * (strlen(path) + OB_SUFFIX_LEN));
+    strcpy(binary_file_name , path);
+    strcat(binary_file_name , ".ob");
+    left = right = 0;
+    time = 1;
+
+    fptr = fopen(binary_file_name , "w");
+    if(fptr == NULL)
+        printf("error openning %s.\n" , binary_file_name);
+    
+    fprintf(fptr, "%d", inst_len);
+    fputc(' ' , fptr);
+    fprintf(fptr, "%d", dir_len);
+    fputc('\n' , fptr);
+
+    while(time <= BINARY_TABLE_COUNT){
+        if(time < BINARY_TABLE_COUNT) {
+            curr_len = inst_len;
+            curr_table = inst_binary_table;
+        }
+        else{
+            curr_len = dir_len;
+            curr_table = dir_binary_table;
+        }
+
+        for(i = 0 ; i < curr_len ; i++){
+            left = right = 0;
+            for(j = LEFT_LAST_BINARY_INDEX ; j >= 0 ; j--){
+                left += (curr_table[i][j] * pow(2 , LEFT_LAST_BINARY_INDEX - j));
+            }
+            for(j = RIGHT_BINARY_INDEX ; j < BINARY_LENGTH ; j++){
+                right += (curr_table[i][j] * pow(2 , BINARY_LAST_INDEX - j));
+            }
+            left_char = base64_table[left];
+            right_char = base64_table[right];
+            fputc(left_char , fptr);
+            fputc(right_char , fptr);
+            fputc('\n' , fptr);
+        }
+        time++;
+    }
+    
+    curr_table = NULL;
+    free_or_close(2 , 1 , fptr);
+    free_or_close(1 , 1 , binary_file_name);
+}
