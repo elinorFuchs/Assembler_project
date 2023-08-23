@@ -37,28 +37,27 @@ int main(int argc, char* argv[]) {
         am = safe_fopen(argv[i], "r", am_suffix);
         
         if(pre_valid) {
-            first_pass(am, &symbol_table, &st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc, ld, new_label);
+            first_valid = first_pass(am, &symbol_table, &st_size, &capacity, &ld_arr, &ld_arr_size, &ic, &dc, ld, new_label);
 
             if(first_valid) {
                 second_pass(&symbol_table, &st_size, &ld_arr, &ic, &dc, ld_arr_size , argv[i]);
-                fclose(am);
-                free_ld_structs(ld_arr, ld_arr_size);
-        
-                for (j = 0; j < st_size ; ++j) {
-                    safe_free(symbol_table[j]);
-                }
-        
-                safe_free_double_p((void **) &symbol_table);
-                symbol_table = NULL;
-                free(symbol_table);
-                safe_free_double_p((void **) &new_label);
-                new_label = NULL;
-        
-                safe_free_double_p((void **) &ld_arr);
-                ld_arr = NULL;
-                safe_free_double_p((void **) &ld);
             }
         }
+
+        fclose(am);
+        free_ld_structs(ld_arr, ld_arr_size);
+        for (j = 0; j < st_size ; ++j) {
+            safe_free(symbol_table[j]);
+        }
+        safe_free_double_p((void **) &symbol_table);
+        symbol_table = NULL;
+        free(symbol_table);
+        safe_free_double_p((void **) &new_label);
+        new_label = NULL;
+
+        safe_free_double_p((void **) &ld_arr);
+        ld_arr = NULL;
+        safe_free_double_p((void **) &ld);
 
 
     }
