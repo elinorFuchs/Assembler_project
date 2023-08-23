@@ -1,8 +1,12 @@
 #include "pre_assembler.h"
 
+bool valid_pre= true;
+
 typedef struct mcro_table {
     char** mcro_name;
     char** line;
+    int *lines_max_inside_each_mcro;
+    int *lines_count_inside_each_mcro;
     int index;
     int max_allocated_mcro_lines;
 } mcro_table;
@@ -12,15 +16,19 @@ mcro_table_p create_mcro_table()
     int i;
     mcro_table* m1;
 
-    m1 = malloc(sizeof(mcro_table));
-    m1->mcro_name = malloc(sizeof(char*) * MAX_MACROS_NUM);
-    m1->line = malloc(sizeof(char*) * MAX_MACROS_NUM);
+    m1 = safe_malloc(sizeof(mcro_table));
+    m1->mcro_name = safe_malloc(sizeof(char*) * START_MAX_MACROS_NUM);
+    m1->line = safe_malloc(sizeof(char*) * START_MAX_MACROS_NUM);
+    m1->lines_max_inside_each_mcro = safe_malloc(sizeof(int) * START_MAX_MACROS_NUM);
+    m1->lines_count_inside_each_mcro = safe_malloc(sizeof(int) * START_MAX_MACROS_NUM);
+    m1->max_allocated_mcro_lines = START_MAX_MACROS_NUM;
     m1->index = 0;
-    m1->max_allocated_mcro_lines = START_MCRO_TABLE_LINES_COUNT;
 
-    for (i = 0; i < MAX_MACROS_NUM; i ++) {
-        m1->mcro_name[i] = malloc(sizeof(char) * MAX_MCRO_NAME);
-        m1->line[i] = malloc(sizeof(char) * MAX_LINE_LEN);
+    for (i = 0; i < START_MAX_MACROS_NUM; i ++) {
+        m1->mcro_name[i] = safe_malloc(sizeof(char) * MAX_MCRO_NAME);
+        m1->line[i] = safe_malloc(sizeof(char) * MAX_LINE_LEN * START_INSIDE_EACH_MCRO);
+        m1->lines_max_inside_each_mcro[i] = START_INSIDE_EACH_MCRO;
+        m1->lines_count_inside_each_mcro[i] = 0;
         m1->mcro_name[i][0] = '\0';
         m1->line[i][0] = '\0';
     }
@@ -41,9 +49,29 @@ bool valid_mcro_name(char* mcro_name)
     return valid;    
 }
 
-void mcro_table_line_increase(mcro_table_p m1) {
+void mcro_table_line_increase(mcro_table_p m1 , int index) {
+    m1->lines_max_inside_each_mcro[index] *= 2;
+    m1->line[index] = realloc(m1->line[index] , sizeof(char*) * m1->lines_max_inside_each_mcro[index]);
+}
+
+void mcro_table_count_increase(mcro_table_p m1) {
+    int i , old_count;
+    old_count = m1->max_allocated_mcro_lines;
     m1->max_allocated_mcro_lines *= 2;
-    m1->line[m1->index] = realloc(m1->line[m1->index] , sizeof(char) * MAX_LINE_LEN * m1->max_allocated_mcro_lines);
+    printf("new count: %d\n" , m1->max_allocated_mcro_lines);
+    m1->mcro_name = realloc(m1->mcro_name , sizeof(char*) * m1->max_allocated_mcro_lines);
+    m1->line = realloc(m1->line , sizeof(char*) * m1->max_allocated_mcro_lines);
+    m1->lines_max_inside_each_mcro = realloc(m1->lines_max_inside_each_mcro , sizeof(int) * m1->max_allocated_mcro_lines);
+    m1->lines_count_inside_each_mcro = realloc(m1->lines_count_inside_each_mcro , sizeof(int) * m1->max_allocated_mcro_lines);
+
+    for (i = old_count ; i < m1->max_allocated_mcro_lines; i ++) {
+        m1->mcro_name[i] = safe_malloc(sizeof(char) * MAX_MCRO_NAME);
+        m1->line[i] = safe_malloc(sizeof(char) * MAX_LINE_LEN * START_INSIDE_EACH_MCRO);
+        m1->lines_max_inside_each_mcro[i] = START_INSIDE_EACH_MCRO;
+        m1->lines_count_inside_each_mcro[i] = 0;
+        m1->mcro_name[i][0] = '\0';
+        m1->line[i][0] = '\0';
+    }
 }
 
 void is_mcro_line(mcro_table_p m1 , char* line , char **inside_mcro) {
@@ -53,17 +81,18 @@ void is_mcro_line(mcro_table_p m1 , char* line , char **inside_mcro) {
     index = 0;
 
     clean_white(line , &index);
-    line2 = malloc(sizeof(char) * ((strlen(&line[index])) + 1));
+    line2 = safe_malloc(sizeof(char) * ((strlen(&line[index])) + 1));
     if(line2 == NULL) {
         printf("Memory allocation Failed\n");
+        valid_pre = false;
     }
     line2 = strcpy(line2 , &line[index]);
     name_check = strtok(line2 , " \t\n\r\0\f");
     exist_index = is_exist_mcro(m1 , name_check);
     if(exist_index != -1 && is_all_white(&line[index + strlen(name_check)])) {
-        *inside_mcro = malloc(sizeof(char) * (1 + strlen(m1->line[exist_index])));
+        *inside_mcro = safe_malloc(sizeof(char) * (1 + strlen(m1->line[exist_index])));
         if(*inside_mcro != NULL)
-        strcpy(*inside_mcro , m1->line[exist_index]);
+            strcpy(*inside_mcro , m1->line[exist_index]);
     }
     else *inside_mcro = NULL;
     free_or_close(1 , 1 , line2);
@@ -73,7 +102,7 @@ int is_exist_mcro (mcro_table_p m1 , char *mcro_name_to_check)
 {
     int mcro_index;
     int i;
-    
+
     mcro_index = -1;
     for(i = 0 ; i < m1->index ; i++)
         if(strcmp(m1->mcro_name[i] , mcro_name_to_check) == 0) {
@@ -86,30 +115,45 @@ int is_exist_mcro (mcro_table_p m1 , char *mcro_name_to_check)
 void insert_mcro(mcro_table_p m1 , char *mcro_name_to_check , char *line , int method) {
     if(method == 1 && is_exist_mcro(m1 , mcro_name_to_check) == -1 && valid_mcro_name(mcro_name_to_check)) {
         strcpy(m1->mcro_name[m1->index] , mcro_name_to_check);
+        printf("new mcro name: %s\n" , m1->mcro_name[m1->index]);
     }
+
     else if(method == 2) {
-        if(m1->index == m1->max_allocated_mcro_lines)
-            mcro_table_line_increase(m1);
+        printf("index is: %d\n" , m1->index);
+        if(m1->index + 1 == m1->max_allocated_mcro_lines){
+            mcro_table_count_increase(m1);
+            printf("mcros max count increase in mcro %s to %d\n" , m1->mcro_name[m1->index] , m1->max_allocated_mcro_lines);
+        } 
+        if(m1->lines_count_inside_each_mcro[m1->index] + 1 == m1->lines_max_inside_each_mcro[m1->index]) {
+            printf("was: %d of %d\n" , m1->lines_count_inside_each_mcro[m1->index] , m1->lines_max_inside_each_mcro[m1->index]);
+            mcro_table_line_increase(m1 , m1->index);
+            printf("increase size inside mcro %s to %d\n" , m1->mcro_name[m1->index] , m1->lines_max_inside_each_mcro[m1->index]);
+        }
+        printf("__________________\n");
         strcat(m1->line[m1->index] , line);
+        m1->lines_count_inside_each_mcro[m1->index]++;
+        printf("count in index is: %d\n" , m1->lines_count_inside_each_mcro[m1->index]);
     }
 }
 
 void free_mcro_table(mcro_table_p m1)
 {
     int index;
-    for (index = 0; index < MAX_MACROS_NUM; index++) {
-        free_or_close(1 , 2 , m1->mcro_name[index] , m1->line[index]);
+
+    printf("finish\n");
+    for (index = 0 ; index < m1->max_allocated_mcro_lines ; index++) {
+        free_or_close(1 , 2 , m1->mcro_name[index] , m1->line[index]);  
     }
-    if(m1->mcro_name != NULL)
-        free(m1->mcro_name);
-    if(m1->line != NULL)
-        free(m1->line);
+    safe_free(m1->lines_max_inside_each_mcro);
+    safe_free(m1->lines_count_inside_each_mcro);
+    safe_free(m1->mcro_name);
+    safe_free(m1->line);
 }
 
 void str_copy(char **copy , char **original , bool start_no_spaces)
 {
     int index;
-    *copy = malloc(sizeof(char) * (1 + strlen(*original)));
+    *copy = safe_malloc(sizeof(char) * (1 + strlen(*original)));
     index = 0;
     if(*copy != NULL) {
         if(start_no_spaces) {
@@ -118,7 +162,10 @@ void str_copy(char **copy , char **original , bool start_no_spaces)
         }
         else strcpy(*copy , *original);
     }
-    else(printf("Error: copy line creation failed."));
+    else{
+        (printf("Error: malloc did not succeed."));
+        valid_pre = false;
+    }
 }
 
 void mcro_dec_line(int* index, int* index_copy, bool* mcro_flag, char** curr_line_index, char* curr_line, 
@@ -133,13 +180,20 @@ void mcro_dec_line(int* index, int* index_copy, bool* mcro_flag, char** curr_lin
     *mcro_name = strtok(&curr_line[*index] , " \f\r\t\n");
     (*mcro_name)[strlen(*mcro_name)] = '\0';
     insert_mcro(m1 , *mcro_name , NULL , 1);
-    if(!is_all_white(&(curr_line[*index_copy]))) 
+    if(!is_all_white(&(curr_line[*index_copy]))) {
         printf("ERROR: forbidden macro declaration in line %d \"%s\". Only one word allowed.\n" , \
         line_number , strtok(*line_copy , "\n\0"));
-    else if(is_exist_mcro(m1 , *mcro_name) != -1) 
+        valid_pre = false;
+    }
+        
+    else if(is_exist_mcro(m1 , *mcro_name) != -1) {
         printf("ERROR: macro named \"%s\" declared twice" , *mcro_name);
-    else if(!valid_mcro_name(*mcro_name)) 
+        valid_pre = false;
+    }
+    else if(!valid_mcro_name(*mcro_name)) {
         printf("ERROR: macro name \"%s\" is name of instruction\n" , *mcro_name);
+        valid_pre = false;
+    }
     else *mcro_flag = true;
     free_or_close(1 , 1 , *line_copy);
 }
@@ -159,19 +213,20 @@ int pre_as(char* path) {
     fptr = fopen(path , "r");
     fptr2 = fopen(am_file_name , "w");
     m1 = create_mcro_table();
-    curr_line = malloc(sizeof(char) * MAX_GET_LEN);
+    curr_line = safe_malloc(sizeof(char) * MAX_GET_LEN);
     
     if(is_null_file(fptr , fptr2 , &path ,  &am_file_name)) {
         free_or_close(1 , 1 , curr_line);
         return -1;
     }
-
+    
     while(fgets(curr_line , MAX_GET_LEN , fptr) != NULL) {
         index = 0 , line_number++;
-        clean_white(curr_line , &index);
 
+        clean_white(curr_line , &index);
         if(strlen(curr_line) > MAX_LINE_LEN) {
             printf("Error: Line %d too long and will be omitted.\n" , line_number);
+            valid_pre = false;
             continue;
         }  /*too long line check*/
         if(is_all_white(curr_line) || curr_line[index] == ';') {
@@ -180,15 +235,14 @@ int pre_as(char* path) {
         is_mcro_line(m1 , curr_line , &inside_mcro);
         if(inside_mcro != NULL) {
             fputs(inside_mcro , fptr2);
-        continue; 
+            free_or_close(1 , 1 , inside_mcro);
+            continue; 
         } /*line to replace with a macro content case. was without mcro flag check */
-        
         index_copy = index + MCRO_LEN;
         clean_white(curr_line , &index_copy);
         if(!strncmp(&curr_line[(index)] , "mcro" , MCRO_LEN) && !isspace(curr_line[index_copy]) &&
         !(strlen(&curr_line[index]) > MCRO_LEN && !isspace(curr_line[index + MCRO_LEN]))) { 
-            mcro_dec_line(&index, &index_copy , &mcro_flag, &curr_line_index, curr_line, &mcro_name, \
-            m1, &line_copy, line_number);
+            mcro_dec_line(&index, &index_copy , &mcro_flag, &curr_line_index, curr_line, &mcro_name , m1, &line_copy, line_number);
         } /* case: optional macro declaration line */
         else if(!mcro_flag) { 
             if (!is_all_white(curr_line)) {
@@ -217,9 +271,8 @@ int pre_as(char* path) {
     free_or_close(2 , 2 , fptr , fptr2);
     free_or_close(1 , 3 , am_file_name ,  curr_line , inside_mcro);
     free_mcro_table(m1);
-    if(m1 != NULL)
-        free(m1);
-    return 1;
+    safe_free(m1);
+    return valid_pre;
 }
 
 void free_or_close(int method , int count, ...) {
@@ -232,8 +285,7 @@ void free_or_close(int method , int count, ...) {
     for(i = 0 ; i < count ; i++) {
         if(method == 1) {
             str = va_arg(args, char*);
-            if(str != NULL)
-                free(str);
+            safe_free(str);
         }  
         else if(method == 2) {
             ptr = va_arg(args, FILE*);
@@ -273,7 +325,7 @@ char* line_template(char* line) {
     char *template_line , temp;
 
     index = 0 , template_index = 0 , extra_spaces_counter = 0 , max_extra = 2;
-    template_line = malloc(sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
+    template_line = safe_calloc(strlen(line) + END_LINE_CHARS + max_extra , sizeof(char));
     
     while(line[index] != '\n' && line[index] != '\0') {
         if(line[index] == ' ' || line[index] == '\t'){
@@ -319,7 +371,7 @@ void strings_letter_change(int letter_index , char new_letter , char* first , ch
 {
     int path_len;
     path_len = strlen(first);
-    *after_change = malloc(sizeof(char) * (path_len + 1)); /*&&&& was path_len + 1*/
+    *after_change = safe_malloc(sizeof(char) * (path_len + 1)); /*&&&& was path_len + 1*/
     string_copy(first , *after_change);
     (*after_change)[letter_index] = new_letter;
 }
@@ -338,6 +390,7 @@ bool is_null_file(FILE *f1 , FILE *f2 , char **first_file_name , char **second_f
             free_or_close(1 , 1 , *second_file_name);
             *second_file_name = NULL;
         }
+        valid_pre = false;
         null_file = true;
     }
     return null_file;
