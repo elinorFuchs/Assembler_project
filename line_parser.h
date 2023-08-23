@@ -53,11 +53,6 @@ typedef struct{
 
 extern op_args_mthd op_args_arr [16];
 
-union arg_name{
-    char* label_name;
-    char* rgister;
-    int immediate;
-};
 
 typedef struct instruction {
     op_args_mthd* op_args_type;

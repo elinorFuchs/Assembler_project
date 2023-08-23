@@ -232,20 +232,25 @@ bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*
     strcpy(inst_line,&temp_line[*index]);/*index is pointing to after the code name*/
 
     if(!(is_commas_valid(inst_line,ld))){/*there is invalid comma*/
+        safe_free(inst_line);
         return false;
     }
     int args_count = args_counter (inst_line);
     if(!(a_count_as_expected(code, args_count))){/*the number of arguments is invalid*/
         ld->ei = INVALID_ARGS_AMOUNT;
+        safe_free(inst_line);
         return false;
     }
     if(!(set_op_args(inst_line,ld))){
+        safe_free(inst_line);
         return false;
     }
     if(!(is_args_as_expected(ld->inst->op_args_type))){/*-inc debug returned false expected true*/
+        safe_free(inst_line);
         ld->ei = INVALID_ARGS_ADD_METHOD;
         return false;
     }
+    safe_free(inst_line);
     return  true;
 }
 

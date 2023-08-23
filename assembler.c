@@ -90,14 +90,19 @@ void free_ld_structs(line_data **ld_arr, int ld_arr_size) {
             }
             safe_free_double_p((void **) &ld_arr[i]->dir->d_content);
             safe_free_double_p((void **) &ld_arr[i]->dir);
-            ld_arr[i] = NULL;
+
         }
         else if (ld_arr[i]->is_instruction) {
+
+            /*free (ld_arr[i]->inst->dest_name);
+           /* ld_arr[i]->inst->dest_name = NULL;
+            safe_free_double_p( (void **)&ld_arr[i]->inst->src_name);
+            ld_arr[i]->inst->src_name = NULL;*/
             safe_free_double_p((void **) &ld_arr[i]->inst->op_args_type);
             safe_free_double_p((void **) &ld_arr[i]->inst);
             ld_arr[i] = NULL;
 
         }
-
+        ld_arr[i] = NULL;
     }
 }

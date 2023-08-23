@@ -25,8 +25,8 @@ char* errors[] = {"", "Error: Invalid first word.\n","Error: Invalid data name.\
                   "Error: Invalid label name (characters should be digits or alphabets.\n",
                   "Error: Immediate number range should be -512 to 511.\n"
 };
-bool
-first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity, line_data **ld_arr[], int *ld_arr_size,
+
+bool first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capacity, line_data **ld_arr[], int *ld_arr_size,
            int *ic, int *dc, line_data *ld, label_object *new_label) {
     char line[MAX_LINE_SIZE];
     int i = 0;
@@ -75,7 +75,7 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
         }
        if (ld_arr[i]->is_label_def){
             /*there is a label definition in the line*/
-            if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -3){/*label not already in the table - definition is valid.*/
+            if (search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -3){/*label isn't in the table - definition is valid.*/
                 new_label = (label_object *) safe_calloc(1, sizeof(label_object));
                 if (ld_arr[i]->is_instruction) {
                     strcpy(new_label->label_name, ld_arr[i]->label_name);
@@ -107,7 +107,12 @@ bool create_symbol_table(line_data *ld_arr[], int ld_arr_size, label_object **sy
                     }
                 }
             }/*end if - entry label*/
-            else if(search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -2){/*double label definition, or definition of extern label*/
+            else if(search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -1){/*definition of extern label*/
+                printf("Error: extern label: : %s can't be defined in the same file.\n", ld_arr[i]->label_name);
+                return false;
+            }
+            else if(search_label((ld_arr[i]->label_name), *symbol_table, *st_size) == -2){/*double label definition*/
+                printf("Error: label %s already defined. \n", ld_arr[i]->label_name);
                 return false;
             }
        }
@@ -178,11 +183,9 @@ int search_label(char* label_name, label_object *symbol_table[], int s_table_siz
                 return i;
             }
             if(symbol_table[i]->type == external){
-               printf("Error: extern label: : %s can't be defined in the same file.\n", label_name);
-                return -2;
+                return -1;
             }
             else if(symbol_table[i]->type == relocatable){
-                printf("Error: label %s already defined. \n", label_name);
                 return -2;
             }
         }
