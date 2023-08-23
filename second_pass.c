@@ -257,11 +257,9 @@ int inst_coding_type(line_data **ld_arr[] , int line_number , int **binary_line 
 }
 
 void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **binary_line , int binary_curr_index , label_object **symbol_table[], int* st_size , int s_type , int d_type , int code_type){
-    int j , reg_s_num , reg_d_num , reg_num , first_str_index , operand_type , reg_start_index;
+    int j , reg_s_num , reg_d_num , reg_num , first_str_index , operand_type , reg_start_index , imm , label_val;
     bool *is_extern_label , extra_print;
     char *operand_str;
-    int imm;
-    int label_val;
 
     reg_s_num = reg_d_num = -1;
     is_extern_label = malloc(sizeof(bool));
