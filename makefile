@@ -1,5 +1,5 @@
 assembler: assembler.ob line_parser.ob pre_assembler.ob first_pass.ob second_pass.ob help_functions.ob
-	gcc -ansi -g -Wall -pedantic -g  assembler.ob line_parser.ob pre_assembler.ob first_pass.ob second_pass.ob help_functions.ob -o assembler
+	gcc -ansi -g -Wall -pedantic -g  assembler.ob line_parser.ob pre_assembler.ob first_pass.ob second_pass.ob help_functions.ob -o assembler -lm
 assembler.ob: assembler.c assembler.h
 	gcc -c -ansi -g -Wall -pedantic assembler.c -o assembler.ob
 line_parser.ob: line_parser.c line_parser.h
