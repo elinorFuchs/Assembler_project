@@ -24,3 +24,6 @@ char* path_string (const char *filename,char* suffix);
 FILE* safe_fopen (const char *filename, const char *mode, char* suffix);
 void* safe_calloc(size_t num_elements, size_t element_size);
 void resize_int_arr(int** arr, int* size);
+/*Method d: for char** realloc , Method c: for char* , Method i: for int*.   */
+void safe_realloc(char *** c_3ptr , char** c_2ptr , int** i_ptr , size_t size , char method);
+void bool_safe_fopen(FILE** fptr , char* path , bool* valid);
