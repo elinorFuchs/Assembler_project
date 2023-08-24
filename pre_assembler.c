@@ -50,8 +50,10 @@ bool valid_mcro_name(char* mcro_name)
 }
 
 void mcro_table_line_increase(mcro_table_p m1 , int index) {
+    int new_max_size;
     m1->lines_max_inside_each_mcro[index] *= 2;
-    m1->line[index] = realloc(m1->line[index] , sizeof(char) * MAX_LINE_LEN * m1->lines_max_inside_each_mcro[index]);
+    new_max_size = sizeof(char) * MAX_LINE_LEN * m1->lines_max_inside_each_mcro[index];
+    safe_realloc(NULL , &(m1->line[index]) , NULL , new_max_size , 'c');
 }
 
 void mcro_table_count_increase(mcro_table_p m1) {
@@ -59,10 +61,10 @@ void mcro_table_count_increase(mcro_table_p m1) {
     old_count = m1->max_allocated_mcro_lines;
     m1->max_allocated_mcro_lines *= 2;
     printf("new count: %d\n" , m1->max_allocated_mcro_lines);
-    m1->mcro_name = realloc(m1->mcro_name , sizeof(char*) * m1->max_allocated_mcro_lines);
-    m1->line = realloc(m1->line , sizeof(char*) * m1->max_allocated_mcro_lines);
-    m1->lines_max_inside_each_mcro = realloc(m1->lines_max_inside_each_mcro , sizeof(int) * m1->max_allocated_mcro_lines);
-    m1->lines_count_inside_each_mcro = realloc(m1->lines_count_inside_each_mcro , sizeof(int) * m1->max_allocated_mcro_lines);
+    safe_realloc(&m1->mcro_name , NULL , NULL , sizeof(char*) * m1->max_allocated_mcro_lines , 'd');
+    safe_realloc(&m1->line , NULL , NULL , sizeof(char*) * m1->max_allocated_mcro_lines , 'd');
+    safe_realloc(NULL , NULL , &m1->lines_max_inside_each_mcro , sizeof(int) * m1->max_allocated_mcro_lines , 'i');
+    safe_realloc(NULL , NULL , &m1->lines_count_inside_each_mcro , sizeof(int) * m1->max_allocated_mcro_lines , 'i');
 
     for (i = old_count ; i < m1->max_allocated_mcro_lines; i ++) {
         m1->mcro_name[i] = safe_malloc(sizeof(char) * MAX_MCRO_NAME);
@@ -139,8 +141,6 @@ void insert_mcro(mcro_table_p m1 , char *mcro_name_to_check , char *line , int m
 void free_mcro_table(mcro_table_p m1)
 {
     int index;
-
-    printf("finish\n");
     for (index = 0 ; index < m1->max_allocated_mcro_lines ; index++) {
         free_or_close(1 , 2 , m1->mcro_name[index] , m1->line[index]);  
     }
@@ -198,16 +198,42 @@ void mcro_dec_line(int* index, int* index_copy, bool* mcro_flag, char** curr_lin
     free_or_close(1 , 1 , *line_copy);
 }
 
+void line_inside_mcro_dec(char* curr_line , char* corrected_line , int* index , bool* mcro_flag , char* mcro_name , mcro_table_p m1){
+    clean_white(curr_line , index);
+    if(!strncmp(&curr_line[*index] , "endmcro" , ENDMCRO_LEN) && is_all_white(&curr_line[*index + ENDMCRO_LEN])){
+        *mcro_flag = false; 
+        mcro_name = NULL;
+        (m1->index)++;
+    } /* "endmcro" line */
+    else {
+        corrected_line = line_template(curr_line);
+        if(corrected_line[*index] != '\0') {
+            insert_mcro(m1 , NULL , corrected_line , 2);
+        }
+        free_or_close(1 , 1 , corrected_line);
+    } /*line of content inside macro declaration */
+}
+
+void regular_line_add(char* curr_line , char* corrected_line , int* index , FILE* fptr2){
+    if (!is_all_white(curr_line)) {
+        corrected_line = line_template(&(curr_line[*index]));
+        /*was in index "index - afik"*/
+        if(corrected_line[0] != '\0')
+            fputs(corrected_line , fptr2);
+        free_or_close(1 , 1 , corrected_line);
+    }  
+}
+
 
 int pre_as(char* path) {
- int index , index_copy , line_number;
+    int index , index_copy , line_number;
     char *am_file_name , *curr_line , *mcro_name , *line_copy , *corrected_line , *inside_mcro , *curr_line_index;
     FILE *fptr , *fptr2;
     mcro_table* m1;
     bool mcro_flag;
 
     strings_letter_change(strlen(path) - 1 , 'm' , path , &am_file_name);
-    line_copy = NULL , mcro_name = NULL;
+    line_copy = NULL , mcro_name = NULL , corrected_line = NULL;
     line_number = 0;
     mcro_flag = false;
     fptr = fopen(path , "r");
@@ -217,21 +243,19 @@ int pre_as(char* path) {
     
     if(is_null_file(fptr , fptr2 , &path ,  &am_file_name)) {
         free_or_close(1 , 1 , curr_line);
-        return -1;
+        return false;
     }
     
     while(fgets(curr_line , MAX_GET_LEN , fptr) != NULL) {
         index = 0 , line_number++;
-
         clean_white(curr_line , &index);
         if(strlen(curr_line) > MAX_LINE_LEN) {
             printf("Error: Line %d too long and will be omitted.\n" , line_number);
             valid_pre = false;
             continue;
         }  /*too long line check*/
-        if(is_all_white(curr_line) || curr_line[index] == ';') {
-            continue;
-        } /*empty or note line skip*/
+        if(is_all_white(curr_line) || curr_line[index] == ';') 
+            continue; /*empty or note line skip*/
         is_mcro_line(m1 , curr_line , &inside_mcro);
         if(inside_mcro != NULL) {
             fputs(inside_mcro , fptr2);
@@ -241,32 +265,13 @@ int pre_as(char* path) {
         index_copy = index + MCRO_LEN;
         clean_white(curr_line , &index_copy);
         if(!strncmp(&curr_line[(index)] , "mcro" , MCRO_LEN) && !isspace(curr_line[index_copy]) &&
-        !(strlen(&curr_line[index]) > MCRO_LEN && !isspace(curr_line[index + MCRO_LEN]))) { 
+           !(strlen(&curr_line[index]) > MCRO_LEN && !isspace(curr_line[index + MCRO_LEN]))) 
+        { 
             mcro_dec_line(&index, &index_copy , &mcro_flag, &curr_line_index, curr_line, &mcro_name , m1, &line_copy, line_number);
         } /* case: optional macro declaration line */
-        else if(!mcro_flag) { 
-            if (!is_all_white(curr_line)) {
-                corrected_line = line_template(&(curr_line[index]));
-                if(corrected_line[index] != '\0')
-                    fputs(corrected_line , fptr2);
-                free_or_close(1 , 1 , corrected_line);
-            }  
-        } /* case: regular line (not in macro declaration and not empty) */
-        else { 
-            clean_white(curr_line , &index);
-            if(!strncmp(&curr_line[index] , "endmcro" , ENDMCRO_LEN) && is_all_white(&curr_line[index + ENDMCRO_LEN])){
-                mcro_flag = false; 
-                mcro_name = NULL;
-                (m1->index)++;
-            } /* "endmcro" line */
-            else {
-                corrected_line = line_template(curr_line);
-                if(corrected_line[index] != '\0') {
-                    insert_mcro(m1 , NULL , corrected_line , 2);
-                }
-                free_or_close(1 , 1 , corrected_line);
-            } /*line of content inside macro declaration */
-        } /* case: line inside macro declaration */       
+        else if(!mcro_flag)  
+            regular_line_add(curr_line ,corrected_line , &index , fptr2);
+        else line_inside_mcro_dec(curr_line , corrected_line , &index , &mcro_flag , mcro_name , m1);      
     }
     free_or_close(2 , 2 , fptr , fptr2);
     free_or_close(1 , 3 , am_file_name ,  curr_line , inside_mcro);
@@ -320,37 +325,52 @@ void clean_white(char* line , int* index) {
             (*index)++;
 }
   
+void comma_switch(char* line , char* template_line , int* index , int* template_index){
+    char temp;
+    temp = template_line[*template_index - 1];
+    template_line[*template_index - 1] = line[*index];
+    template_line[*template_index] = temp;
+}
+
+void add_space_after_comma(char* line , char* template_line , int* index , int* template_index , int* extra_spaces_counter , int* max_extra){
+        template_line[*template_index] = ' ';
+        (*extra_spaces_counter)++;
+        if(*extra_spaces_counter == *max_extra) {
+            (*max_extra) *= 2;
+            safe_realloc(NULL , &template_line , NULL , sizeof(char) * strlen(line) + END_LINE_CHARS + (*max_extra) , 'c');
+        }
+        (*template_index)++;
+        template_line[*template_index] = line[*index];
+        clean_white(line , index);  
+}
+
+void one_space_separate(char* line , char* template_line , int* index , int* template_index){
+        if((*template_index) > 0 && template_line[*template_index - 1] != ' ') 
+            template_line[*template_index] = ' ';
+        else (*template_index)--;
+        (*index)++;
+        clean_white(line , index);
+        (*index)--;
+}
+
+
 char* line_template(char* line) {
-    int index , template_index, extra_spaces_counter , max_extra;
-    char *template_line , temp;
+    int index , template_index, extra_spaces_counter , max_extra , template_len;
+    char *template_line;
 
     index = 0 , template_index = 0 , extra_spaces_counter = 0 , max_extra = 2;
-    template_line = safe_calloc(strlen(line) + END_LINE_CHARS + max_extra , sizeof(char));
+    template_len = strlen(line) + END_LINE_CHARS + max_extra;
+    template_line = safe_calloc(template_len , sizeof(char));
     
     while(line[index] != '\n' && line[index] != '\0') {
         if(line[index] == ' ' || line[index] == '\t'){
-            if(template_index > 0 && template_line[template_index - 1] != ' ') 
-                template_line[template_index] = ' ';
-            else template_index--;
-            index++;
-            clean_white(line , &index);
-            index--;
+            one_space_separate(line , template_line , &index , &template_index);
         }
         else if (line[index] == ',' && template_index > 0 && template_line[template_index - 1] == ' ' && strstr(line , ".string") == NULL){
-            temp = template_line[template_index - 1];
-            template_line[template_index - 1] = line[index];
-            template_line[template_index] = temp;
+            comma_switch(line , template_line , &index , &template_index);
         }   
         else if(template_index > 0 && template_line[template_index - 1] == ',' && strstr(line , ".string") == NULL) {
-            template_line[template_index] = ' ';
-            extra_spaces_counter++;
-            if(extra_spaces_counter == max_extra) {
-                max_extra *= 2;
-                template_line = realloc(template_line , sizeof(char) * strlen(line) + END_LINE_CHARS + max_extra);
-            }
-	        template_index++;
-            template_line[template_index] = line[index];
-            clean_white(line , &index);  
+            add_space_after_comma(line , template_line , &index , &template_index , &extra_spaces_counter , &max_extra);
         }
         else template_line[template_index] = line[index];
         index++; 
