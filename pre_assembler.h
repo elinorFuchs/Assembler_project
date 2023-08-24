@@ -48,4 +48,11 @@ void mcro_table_line_increase(mcro_table_p m1 , int index);
 void free_mcro_table(mcro_table_p m1);
 mcro_table_p create_mcro_table();
 int is_all_white(char* line);
+void comma_switch(char* line , char* template_line , int* index , int* template_index);
+void add_space_after_comma(char* line , char* template_line , int* index , int* template_index , int* extra_spaces_counter , int* max_extra);
+void one_space_separate(char* line , char* template_line , int* index , int* template_index);
+void line_inside_mcro_dec(char* curr_line , char* corrected_line , int* index , bool* mcro_flag , char* mcro_name , mcro_table_p m1);
+void regular_line_add(char* curr_line , char* corrected_line , int* index , FILE* fptr2);
+
+
 
