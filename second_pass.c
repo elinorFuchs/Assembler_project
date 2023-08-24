@@ -322,7 +322,7 @@ void binary_extra_lines_insert (line_data **ld_arr[] , int line_number , int **b
                     else printf("Error: label %s does not exist.\n" , operand_str);
                     break;
                 case reg:
-                    reg_num = (operand_str)[REG_NUM_STR_INDEX] - '0'; /*convert to int by ascii*/
+                    reg_num = operand_str[REG_NUM_STR_INDEX] - '0'; /*convert to int by ascii*/
                     if(extra_line_num == 2)
                         reg_start_index = 0;
                     else reg_start_index = SECOND_REG_INDEX;

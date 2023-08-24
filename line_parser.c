@@ -178,7 +178,7 @@ bool string_parser(char* temp_line, line_data* ld, int* index){
     char* args;
 
     string_line = (char*)safe_malloc(strlen(temp_line) + 1);
-    ld->dir->d_content->string = (str_d*)safe_malloc(sizeof(str_d));
+    ld->dir->d_content->string = (string_data*)safe_malloc(sizeof(string_data));
     ld->dir->d_content->string->string = (char*)safe_malloc(strlen(temp_line) + 1);
 
     strcpy(string_line,&temp_line[*index]);/*index is pointing to after .string*/
@@ -246,11 +246,10 @@ bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld)/*
         return false;
     }
     if(!(is_args_as_expected(ld->inst->op_args_type))){/*-inc debug returned false expected true*/
-        safe_free(inst_line);
+       safe_free(inst_line);
         ld->ei = INVALID_ARGS_ADD_METHOD;
         return false;
     }
-    safe_free(inst_line);
     return  true;
 }
 
@@ -410,9 +409,12 @@ bool set_op_args(char* data_args, line_data* ld) {
 
         strcpy(data_line, &temp_line[*index]);/*index is pointing to after .data*/
         if (!is_valid_data(data_line,ld)) {/*include error message if not, skip spaces in beginning,check commas*/
+            safe_free(data_line);
             return false;
         }
         copy_d_args(data_line, ld);/*skip spaces in the beginning, creat int array*/
+        safe_free(data_line);
+
         return true;
     }
 
@@ -436,8 +438,9 @@ bool set_op_args(char* data_args, line_data* ld) {
     bool is_valid_data(char *data_line, line_data* ld) {
         int i;
 
-        if (!(is_commas_valid(data_line,ld)))
-            return false;
+        if (!(is_commas_valid(data_line,ld))) {
+          return false;
+        }
         for (i = 0; i < strlen(data_line); i++) {
             skip_spaces(&i, data_line);
             skip_commas(&i,data_line);
@@ -447,9 +450,10 @@ bool set_op_args(char* data_args, line_data* ld) {
                 i++;
             }
             if (!(isdigit(data_line[i]))) {
-                    if (data_line[i] == '\0' || data_line[i] == '\n')
+                    if (data_line[i] == '\0' || data_line[i] == '\n') {
                         return true;
-                    return false;
+                    }
+                return false;
             }
         }
         i = 0;
@@ -479,23 +483,19 @@ bool set_op_args(char* data_args, line_data* ld) {
             skip_commas(&i, data_line);
 
             if (j >= data_size) /*reallocate memory*/
-                resize_int_arr(&d_args, &data_size);/*maybe need to update data size?*/
+                resize_int_arr(&d_args, &data_size);
         }
         ld->dir->d_content->d_arr = (data_arr*)safe_malloc(j * sizeof(data_arr));
         ld->dir->d_content->d_arr->data_arr = (int*)safe_malloc(j * sizeof(int));
         ld->dir->d_content->d_arr->data_arr = 0;
 
         ld->dir->d_content->d_arr->data_arr = d_args;
-        if(j == 1 && ld->dir->d_content->d_arr->data_arr[0] == 0 ) {/*if there is not data after .data*/
+        if(j == 1 && ld->dir->d_content->d_arr->data_arr[0] == 0 ) {/*if there is no data after .data*/
             ld->dir->d_content->d_arr->data_arr_size = 0;
         }
         else
             ld->dir->d_content->d_arr->data_arr_size = j;
-        /*print for debugging
-        int k;
-        for ( k = 0; k < j; ++k) {
-            printf("%d\n", ld->dir->d_content->d_arr->data_arr[k]);
-        }*/
+
         return;
     }
 

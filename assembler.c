@@ -101,7 +101,7 @@ void free_ld_structs(line_data **ld_arr, int ld_arr_size) {
         else if (ld_arr[i]->is_instruction) {
 
             /*free (ld_arr[i]->inst->dest_name);
-           /* ld_arr[i]->inst->dest_name = NULL;
+            ld_arr[i]->inst->dest_name = NULL;
             safe_free_double_p( (void **)&ld_arr[i]->inst->src_name);
             ld_arr[i]->inst->src_name = NULL;*/
             safe_free_double_p((void **) &ld_arr[i]->inst->op_args_type);

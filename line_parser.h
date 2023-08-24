@@ -71,15 +71,15 @@ typedef enum direction_type {
     invalid_data
 }direction_type;
 
-typedef struct data_arr { 
+typedef struct {
     int *data_arr;/*if it's a data*/
     size_t data_arr_size;
 }data_arr;
 
-typedef struct string_data { 
+typedef struct {
     char* string; /*if it's a string*/
     int str_len;
-}str_d;
+}string_data;
 
 typedef struct {
     char** entry;
@@ -91,14 +91,14 @@ typedef struct {
     int ex_size;
 }extern_arr;
 
-typedef union direction_content{
+typedef union{
     data_arr* d_arr;
-    str_d* string;
+    string_data* string;
     entry_arr* en_arr;
     extern_arr* ex_arr;
 }direction_content;
 
-typedef struct direction {
+typedef struct {
     direction_type d_type;
     direction_content* d_content;
     int dir_line_keeper;
