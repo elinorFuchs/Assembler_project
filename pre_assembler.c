@@ -51,7 +51,7 @@ bool valid_mcro_name(char* mcro_name)
 
 void mcro_table_line_increase(mcro_table_p m1 , int index) {
     m1->lines_max_inside_each_mcro[index] *= 2;
-    m1->line[index] = realloc(m1->line[index] , sizeof(char*) * m1->lines_max_inside_each_mcro[index]);
+    m1->line[index] = realloc(m1->line[index] , sizeof(char) * MAX_LINE_LEN * m1->lines_max_inside_each_mcro[index]);
 }
 
 void mcro_table_count_increase(mcro_table_p m1) {
