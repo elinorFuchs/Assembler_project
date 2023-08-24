@@ -77,6 +77,42 @@ void skip_commas(int* index, const char* line) {
     }
 }
 
+void bool_safe_fopen(FILE** fptr , char* path , bool* valid){
+    (*valid) = true;
+    *fptr = fopen(path , "w");
+    if(*fptr == NULL) {
+        printf("error openning %s.\n" , path);
+        (*valid) = false;
+    }
+}
+
+void safe_realloc(char *** c_3ptr , char** c_2ptr , int** i_ptr , size_t size , char method) {
+    void* temp_ptr;
+    switch(method){
+        case 'd':
+            temp_ptr = realloc(*c_3ptr , size);
+            break;
+        case 'c':
+            temp_ptr = realloc(*c_2ptr , size);
+            break;
+        case 'i':
+            temp_ptr = realloc(*i_ptr , size);
+            break;
+        default: 
+            printf("Wrong method called.\n");
+            exit(1);
+    }
+    if (temp_ptr == NULL) {
+        printf("Memory reallocation failed.\n");
+        exit(1);
+    }
+    if(method == 'd')
+        *c_3ptr = temp_ptr;
+    else if(method == 'c')
+        *c_2ptr = temp_ptr;
+    else *i_ptr = temp_ptr;
+}
+
 int string_to_sign_int(char* data_line, int* index) {
     int sign = 1;
     if (data_line[*index] == '-') {
