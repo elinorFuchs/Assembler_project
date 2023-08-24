@@ -35,8 +35,8 @@ bool first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capa
     while (fgets(line, MAX_LINE_SIZE, am)) {/*put each line as a struct in the line_data array*/
         ld = (line_data* )safe_calloc(1,sizeof (line_data));
         ld = create_line_data(line, ld);
-        (*ld_arr)[i] = ld;
 
+        (*ld_arr)[i] = ld;
         if (ld->ei != SUCCESS) {
             printf("In line %d:\n", line_num);
             printf("%s", line);
@@ -51,6 +51,8 @@ bool first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capa
     }
     *ld_arr = (line_data **) realloc(*ld_arr, i * sizeof(line_data *));
     *ld_arr_size = i-1;
+    printf("AFTER FIRST PASS LD ARR [9] LABEL NAME IS IS: %s\n", (*ld_arr)[9]->label_name);
+
 
     if (create_symbol_table(*ld_arr, *ld_arr_size, symbol_table, st_size, capacity, ic, dc, new_label)) {/*creating the symbol table of the file*/
         int k;
@@ -59,6 +61,7 @@ bool first_pass(FILE *am, label_object **symbol_table[], int *st_size, int *capa
                 (*symbol_table)[k]->label_value += *ic;
             }
         }
+
         return true;
     } else {
         return false;

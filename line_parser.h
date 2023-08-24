@@ -144,7 +144,7 @@ void copy_d_args(char* data_line, line_data* ld);
 bool is_valid_data(char *data_line, line_data *ld);
 bool inst_args_parser(char *temp_line, opcode code, int *index, line_data *ld);
 bool a_count_as_expected(opcode op, int args_c);
-bool set_op_args(char* data_args, line_data* ld);
+bool set_op_args(char* inst_args, line_data* ld);
 void set_src_add (char* arg, line_data* ld);
 void set_dest_add (char* args, line_data* ld);
 bool is_immediate(char* arg,line_data* ld);

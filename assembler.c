@@ -43,22 +43,23 @@ int main(int argc, char* argv[]) {
                 second_pass(&symbol_table, &st_size, &ld_arr, &ic, &dc, ld_arr_size , argv[i]);
             }
         }
-
         fclose(am);
         free_ld_structs(ld_arr, ld_arr_size);
+
         for (j = 0; j < st_size ; ++j) {
             safe_free(symbol_table[j]);
         }
         safe_free_double_p((void **) &symbol_table);
-        symbol_table = NULL;
+
         free(symbol_table);
+        symbol_table = NULL;
+
         safe_free_double_p((void **) &new_label);
         new_label = NULL;
 
+        safe_free_double_p((void **) &ld);
         safe_free_double_p((void **) &ld_arr);
         ld_arr = NULL;
-        safe_free_double_p((void **) &ld);
-
 
     }
     return 0;
@@ -68,9 +69,8 @@ int main(int argc, char* argv[]) {
 
 void free_ld_structs(line_data **ld_arr, int ld_arr_size) {
     int i , j;
+
     for (i = 0; i < ld_arr_size; i++) {
-        printf("ld_arr[i] is direction %d i = %d\n", ld_arr[i]->is_direction, i);
-        printf("ld_arr[i] is instruction %d i = %d\n", ld_arr[i]->is_instruction, i);
 
         if (ld_arr[i]->is_direction) {
             if (ld_arr[i]->dir->d_type == d_string) {
@@ -96,17 +96,17 @@ void free_ld_structs(line_data **ld_arr, int ld_arr_size) {
             }
             safe_free_double_p((void **) &ld_arr[i]->dir->d_content);
             safe_free_double_p((void **) &ld_arr[i]->dir);
+            safe_free(ld_arr[i]);
 
         }
         else if (ld_arr[i]->is_instruction) {
-
-            /*free (ld_arr[i]->inst->dest_name);
+            safe_free_double_p((void **) &ld_arr[i]->inst->src_name);
+            ld_arr[i]->inst->src_name = NULL;
+            safe_free_double_p((void **) &ld_arr[i]->inst->dest_name);
             ld_arr[i]->inst->dest_name = NULL;
-            safe_free_double_p( (void **)&ld_arr[i]->inst->src_name);
-            ld_arr[i]->inst->src_name = NULL;*/
             safe_free_double_p((void **) &ld_arr[i]->inst->op_args_type);
             safe_free_double_p((void **) &ld_arr[i]->inst);
-            ld_arr[i] = NULL;
+            safe_free(ld_arr[i]);
 
         }
         ld_arr[i] = NULL;
