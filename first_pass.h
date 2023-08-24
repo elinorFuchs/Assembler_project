@@ -4,6 +4,7 @@
 
 #define INITIAL_SIZE 10
 #define ERROR_VAL -1
+#define LABEL_NOT_EXIST -3
 
 
 enum label_type{
