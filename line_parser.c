@@ -278,7 +278,9 @@ bool set_op_args(char* inst_args, line_data* ld) {
 
     if (first_arg == NULL) {/*happen only when there is no args at all*/
         ld->inst->op_args_type->src[0] = none;
+        ld->inst->src_name = '\0';
         ld->inst->op_args_type->dest[0] = none;
+        ld->inst->dest_name = '\0';
         return true;
     }
     else if (!(is_inst_arg_valid(first_arg, ld))) {
